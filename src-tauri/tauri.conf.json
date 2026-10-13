@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Local iPhone Transfer",
+  "version": "0.1.0",
+  "identifier": "com.localtransfer.iphone",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Local iPhone Transfer",
+        "width": 1080,
+        "height": 720,
+        "minWidth": 760,
+        "minHeight": 600,
+        "center": true,
+        "resizable": true
+      }
+    ],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Utility",
+    "shortDescription": "Transfer accessible iPhone media locally over USB",
+    "linux": {
+      "deb": {
+        "depends": ["libimobiledevice-utils", "usbmuxd"],
+        "files": {
+          "/usr/share/doc/local-iphone-transfer/THIRD_PARTY_NOTICES.md": "../THIRD_PARTY_NOTICES.md"
+        }
+      },
+      "rpm": {
+        "depends": ["libimobiledevice", "usbmuxd"],
+        "files": {
+          "/usr/share/doc/local-iphone-transfer/THIRD_PARTY_NOTICES.md": "../THIRD_PARTY_NOTICES.md"
+        }
+      }
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png",
+      "icons/Square284x284Logo.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

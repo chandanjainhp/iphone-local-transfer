@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+target/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Tauri
+.src-tauri/target/
+
+# Rust
+Cargo.lock
+
+# Generated files
+package-lock.json
+
+# Agent/CLI specific
+.agents/
+.claude/
+.freebuff/
+.skills-lock.json
+
+# Local config (optional - if you want to keep it)
+# tsconfig.json
+# vite.config.ts

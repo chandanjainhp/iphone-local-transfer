@@ -1,0 +1,25 @@
+[package]
+name = "local-iphone-transfer"
+version = "0.1.0"
+description = "Local-only iPhone USB media transfer"
+authors = ["Local Transfer contributors"]
+edition = "2021"
+
+[lib]
+name = "local_iphone_transfer_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+filetime = "0.2"
+
+# libc is used only on Unix to convert a device-reported local timestamp back
+# into an epoch value (mktime), so source mtimes can be preserved exactly.
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
