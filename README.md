@@ -45,34 +45,34 @@ Nothing leaves your machine: no server, no account, no telemetry, no network tra
 
 Every build is attached to a [GitHub Release](https://github.com/chandanjainhp/iphone-local-transfer/releases). The current release line is **`v0.1.0`** (Linux x86-64 only — see [Platform support](#platform-support)).
 
-➡️ **[Open the latest release](https://github.com/chandanjainhp/iphone-local-transfer/releases/latest)**
+➡️ **[Open the latest release](https://github.com/chandanjainhp/iphone-local-transfer/releases/latest)** — or grab the artifact you need directly:
 
-| Format | Release asset | Size |
+| Format | Download | Size |
 | --- | --- | --- |
-| Debian / Ubuntu | `Local iPhone Transfer_0.1.0_amd64.deb` | ~3.2 MB |
-| Fedora / RHEL | `Local iPhone Transfer-0.1.0-1.x86_64.rpm` | ~3.2 MB |
-| Any Linux distro | `Local iPhone Transfer_0.1.0_amd64.AppImage` | ~101 MB |
+| Debian / Ubuntu | **[`Local.iPhone.Transfer_0.1.0_amd64.deb`](https://github.com/chandanjainhp/iphone-local-transfer/releases/download/v0.1.0/Local.iPhone.Transfer_0.1.0_amd64.deb)** | 3.2 MB |
+| Fedora / RHEL | **[`Local.iPhone.Transfer-0.1.0-1.x86_64.rpm`](https://github.com/chandanjainhp/iphone-local-transfer/releases/download/v0.1.0/Local.iPhone.Transfer-0.1.0-1.x86_64.rpm)** | 3.2 MB |
+| Any Linux distro | **[`Local.iPhone.Transfer_0.1.0_amd64.AppImage`](https://github.com/chandanjainhp/iphone-local-transfer/releases/download/v0.1.0/Local.iPhone.Transfer_0.1.0_amd64.AppImage)** | 100 MB |
 
 ```bash
 # Debian / Ubuntu
-sudo apt install './Local iPhone Transfer_0.1.0_amd64.deb'
+sudo apt install ./Local.iPhone.Transfer_0.1.0_amd64.deb
 
 # Fedora / RHEL
-sudo dnf install './Local iPhone Transfer-0.1.0-1.x86_64.rpm'
+sudo dnf install ./Local.iPhone.Transfer-0.1.0-1.x86_64.rpm
 
 # Any Linux distro (no install step, no root needed)
-chmod +x './Local iPhone Transfer_0.1.0_amd64.AppImage'
-'./Local iPhone Transfer_0.1.0_amd64.AppImage'
+chmod +x ./Local.iPhone.Transfer_0.1.0_amd64.AppImage
+./Local.iPhone.Transfer_0.1.0_amd64.AppImage
 ```
 
 The `.deb` and `.rpm` declare `libimobiledevice-utils` and `usbmuxd` as package dependencies, so the distro package manager pulls in the USB tooling for you. The AppImage bundles everything it needs and is the largest download.
 
-> If a link above does not exist yet, the `v0.1.0` release has not been published — build from source instead (see [Develop from source](#develop-from-source)).
+> Build outputs are named `Local iPhone Transfer_…` on disk. GitHub replaces the spaces with dots when uploading, which is why the release assets and the links above read `Local.iPhone.Transfer_…`.
 
 ## Install on Linux
 
 1. Download one of the three artifacts above.
-2. Install it with the command in the table (or run the AppImage directly — no install step, no root).
+2. Install it with the matching command (or run the AppImage directly — no install step, no root).
 3. Start **Local iPhone Transfer** from your application menu or from the terminal.
 
 No Rust, Node.js, or developer tools are required on the machine running the app.
@@ -266,7 +266,7 @@ Verified output on Linux x86-64:
 | Release binary | `src-tauri/target/release/local-iphone-transfer` | 12 MB |
 | Debian package | `src-tauri/target/release/bundle/deb/Local iPhone Transfer_0.1.0_amd64.deb` | 3.2 MB |
 | RPM package | `src-tauri/target/release/bundle/rpm/Local iPhone Transfer-0.1.0-1.x86_64.rpm` | 3.2 MB |
-| AppImage | `src-tauri/target/release/bundle/appimage/Local iPhone Transfer_0.1.0_amd64.AppImage` | 101 MB |
+| AppImage | `src-tauri/target/release/bundle/appimage/Local iPhone Transfer_0.1.0_amd64.AppImage` | 100 MB |
 
 Packaging notes:
 
@@ -278,7 +278,23 @@ Packaging notes:
 
 ### Publishing the release
 
-Attach the three bundle artifacts above to a GitHub Release tagged `v0.1.0` so the links in [Download](#download) resolve. Keep the artifact filenames exactly as produced — GitHub rewrites spaces in uploaded asset names, so prefer `gh release create` with the files listed explicitly rather than renaming them by hand.
+The `v0.1.0` release is published, so the links in [Download](#download) resolve. To cut the next release:
+
+```bash
+git tag -a v0.1.1 -m "Local iPhone Transfer v0.1.1"
+git push origin v0.1.1
+cd src-tauri/target/release/bundle
+gh release create v0.1.1 --verify-tag --title "v0.1.1" --notes-file <notes>.md \
+  "deb/Local iPhone Transfer_0.1.1_amd64.deb" \
+  "rpm/Local iPhone Transfer-0.1.1-1.x86_64.rpm" \
+  "appimage/Local iPhone Transfer_0.1.1_amd64.AppImage"
+```
+
+**GitHub replaces spaces in uploaded asset names with dots**, so `Local iPhone Transfer_0.1.0_amd64.deb` becomes `Local.iPhone.Transfer_0.1.0_amd64.deb` on the release and in its download URL. Every download link in this README uses the dotted form. After publishing, verify the real asset names instead of assuming them:
+
+```bash
+gh release view v0.1.1 --json assets --jq '.assets[].name'
+```
 
 ## Quality gates
 
