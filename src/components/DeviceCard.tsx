@@ -1,10 +1,4 @@
-import {
-  CircleX,
-  LoaderCircle,
-  RefreshCw,
-  Smartphone,
-  Usb,
-} from "lucide-react";
+import { Icon } from "../icons";
 import type { Diagnostics, DeviceSnapshot } from "../types";
 
 interface DeviceCardProps {
@@ -30,7 +24,7 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
       return (
         <>
           <div className="device-icon">
-            <Smartphone size={28} strokeWidth={1.7} />
+            <Icon name="device" size="hero" />
           </div>
           <div className="connect-copy">
             <h2>Browser Preview</h2>
@@ -39,7 +33,7 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
               <code> npm run tauri dev</code> to use this app for real.
             </p>
             <div className="micro-status">
-              <Usb size={14} /> No files are sent anywhere, in any mode.
+              <Icon name="usb" size="small" /> No files are sent anywhere, in any mode.
             </div>
           </div>
         </>
@@ -49,7 +43,7 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
       return (
         <>
           <div className="device-icon">
-            <LoaderCircle size={28} className="spin" />
+            <Icon name="spinner" size="hero" className="spin" />
           </div>
           <div className="connect-copy">
             <h2>Scanning Your Photo Library…</h2>
@@ -63,7 +57,7 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
         return (
           <>
             <div className="device-icon">
-              <Smartphone size={28} strokeWidth={1.7} />
+              <Icon name="device" size="hero" />
             </div>
             <div className="connect-copy">
               <h2>
@@ -78,7 +72,7 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
               </h2>
               <p>Choose the photos and videos you want to copy to this computer.</p>
               <div className="micro-status">
-                <Usb size={14} /> USB connection <span className="micro-divider">·</span> Nothing
+                <Icon name="usb" size="small" /> USB connection <span className="micro-divider">·</span> Nothing
                 is uploaded anywhere
               </div>
             </div>
@@ -89,7 +83,7 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
               disabled={busy}
               aria-label="Rescan the iPhone for photos and videos"
             >
-              <RefreshCw size={14} /> Rescan
+              <Icon name="refresh" size="small" /> Rescan
             </button>
           </>
         );
@@ -97,13 +91,13 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
         return (
           <>
             <div className="device-icon warn">
-              <Smartphone size={28} strokeWidth={1.7} />
+              <Icon name="device" size="hero" />
             </div>
             <div className="connect-copy">
               <h2>{device.message}</h2>
               <p>{device.hint ?? "Unlock your iPhone and tap Trust on the iPhone screen."}</p>
               <div className="micro-status">
-                <Usb size={14} /> Keep the cable connected while you do this.
+                <Icon name="usb" size="small" /> Keep the cable connected while you do this.
               </div>
             </div>
           </>
@@ -113,7 +107,7 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
         return (
           <>
             <div className="device-icon warn">
-              <CircleX size={28} strokeWidth={1.7} />
+              <Icon name="error" size="hero" />
             </div>
             <div className="connect-copy">
               <h2>{device.message}</h2>
@@ -128,7 +122,7 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
         return (
           <>
             <div className="device-icon">
-              <Smartphone size={28} strokeWidth={1.7} />
+              <Icon name="device" size="hero" />
             </div>
             <div className="connect-copy">
               <h2>Connect Your iPhone</h2>
@@ -137,13 +131,13 @@ export function DeviceCard({ native, scanning, busy, device, diag, onScan }: Dev
                 Your files will appear here.
               </p>
               <div className="micro-status">
-                <Usb size={14} /> USB only <span className="micro-divider">·</span> No cloud or
+                <Icon name="usb" size="small" /> USB only <span className="micro-divider">·</span> No cloud or
                 account required
               </div>
             </div>
             <div className="connect-state">
               <span className="state-ring">
-                <LoaderCircle size={18} className="spin" />
+                <Icon name="spinner" size="action" className="spin" />
               </span>
               <span>Waiting for device</span>
             </div>

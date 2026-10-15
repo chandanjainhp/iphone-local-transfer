@@ -45,6 +45,30 @@ export function formatDateTime(ms: number | null | undefined): string {
   return time ? `${date}, ${time}` : date;
 }
 
+/**
+ * Compact "time ago" for notifications, e.g. "Just now", "4 min", "3 h",
+ * "2 days". Returns "—" for a missing timestamp rather than inventing one.
+ *
+ * `now` is a parameter so the result is deterministic in tests and so a
+ * re-render with a fresher clock can update the label.
+ */
+export function formatRelativeTime(
+  ms: number | null | undefined,
+  now: number = Date.now(),
+): string {
+  if (ms === null || ms === undefined || Number.isNaN(ms) || ms <= 0) return "—";
+  const delta = Math.max(0, now - ms);
+  const seconds = Math.floor(delta / 1000);
+  if (seconds < 45) return "Just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${Math.max(1, minutes)} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"}`;
+  return formatDate(ms);
+}
+
 export function formatSpeed(bps: number | null | undefined): string {
   if (bps === null || bps === undefined || bps <= 0) return "—";
   return `${formatBytes(bps)}/s`;

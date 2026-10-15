@@ -1,11 +1,4 @@
-import {
-  AlertTriangle,
-  CheckCircle2,
-  HelpCircle,
-  Loader2,
-  Usb,
-  XCircle,
-} from "lucide-react";
+import { Icon } from "../icons";
 import type { EnvReport } from "../types";
 
 /**
@@ -41,21 +34,21 @@ export function SetupScreen({ report, checking, error, onRecheck, onDismiss }: P
     switch (status) {
       case "checking":
         return {
-          icon: <Loader2 className="spin" size={30} aria-hidden />,
+          icon: <Icon name="spinner" size="hero" className="spin" />,
           title: "Preparing your iPhone connection...",
           body: "Checking that this computer can talk to an iPhone over USB.",
           primaryLabel: "Check Again",
         };
       case "ready":
         return {
-          icon: <CheckCircle2 className="setup-ok" size={30} aria-hidden />,
+          icon: <Icon name="success" size="hero" className="setup-ok" />,
           title: "Your computer is ready.",
           body: "Connect your iPhone with a USB cable and unlock it to see your photos and videos here.",
           primaryLabel: "Continue",
         };
       case "dependency_missing":
         return {
-          icon: <AlertTriangle className="setup-warn" size={30} aria-hidden />,
+          icon: <Icon name="warning" size="hero" className="setup-warn" />,
           title: "USB support needs setup.",
           body: report && report.missing_tools.length > 0
             ? `This app needs the free USB tools “${report.missing_tools.join(
@@ -67,7 +60,7 @@ export function SetupScreen({ report, checking, error, onRecheck, onDismiss }: P
       case "service_not_running":
       case "permission_required":
         return {
-          icon: <Usb className="setup-warn" size={30} aria-hidden />,
+          icon: <Icon name="usb" size="hero" className="setup-warn" />,
           title: "iPhone connection service is not running.",
           body:
             status === "permission_required"
@@ -77,28 +70,28 @@ export function SetupScreen({ report, checking, error, onRecheck, onDismiss }: P
         };
       case "pairing_required":
         return {
-          icon: <HelpCircle className="setup-warn" size={30} aria-hidden />,
+          icon: <Icon name="help" size="hero" className="setup-warn" />,
           title: "Unlock your iPhone and approve the Trust prompt.",
           body: "Your iPhone is connected, but it is waiting for you to approve this computer. Unlock the phone, tap Trust on its screen, then check again.",
           primaryLabel: "I've Approved It — Check Again",
         };
       case "device_not_connected":
         return {
-          icon: <Usb className="setup-muted" size={30} aria-hidden />,
+          icon: <Icon name="usb" size="hero" className="setup-muted" />,
           title: "No iPhone detected.",
           body: "Connect your iPhone to this computer with a USB cable and unlock it. If the phone asks whether to trust this computer, tap Trust.",
           primaryLabel: "Check Again",
         };
       case "unsupported_platform":
         return {
-          icon: <XCircle className="setup-warn" size={30} aria-hidden />,
+          icon: <Icon name="error" size="hero" className="setup-warn" />,
           title: "This operating system is not supported yet.",
           body: report?.message ?? "This app is built and tested for Linux, macOS and Windows.",
           primaryLabel: "Check Again",
         };
       default:
         return {
-          icon: <XCircle className="setup-warn" size={30} aria-hidden />,
+          icon: <Icon name="error" size="hero" className="setup-warn" />,
           title: "The connection check needs attention.",
           body: error
             ? `The connection check could not run (${error}).`
@@ -109,7 +102,16 @@ export function SetupScreen({ report, checking, error, onRecheck, onDismiss }: P
   })();
 
   const isChecking = status === "checking" && checking;
-  const primaryIsRecheck = status !== "ready";
+  /**
+   * A ready report has nothing to fix, so its primary action has to enter the
+   * app. It used to re-run the check instead — and because the explicit
+   * "Open the App Anyway" button is withheld once nothing is wrong, a machine
+   * that passed every prerequisite was left with no way past this screen at
+   * all: "Continue" re-checked, the result was still "ready", and the card
+   * stayed. The label and the handler now agree.
+   */
+  const primaryEntersApp = status === "ready";
+  const primaryIsRecheck = !primaryEntersApp;
 
   return (
     <div className="setup-screen" role="status" aria-live="polite">
@@ -137,7 +139,13 @@ export function SetupScreen({ report, checking, error, onRecheck, onDismiss }: P
             {report.checks.map((check) => (
               <li key={check.id} className={check.ok ? "ok" : check.skipped ? "skipped" : "failed"}>
                 <span className="setup-check-mark" aria-hidden>
-                  {check.ok ? "✓" : check.skipped ? "—" : "✕"}
+                  {/* Semantic glyph instead of the improvised ✓ / — / ✕ text
+                      characters this screen used to print. */}
+                  <Icon
+                    name={check.ok ? "pass" : check.skipped ? "neutral" : "fail"}
+                    size="small"
+                    weight="bold"
+                  />
                 </span>
                 <span className="setup-check-label">
                   {check.label}
@@ -152,10 +160,10 @@ export function SetupScreen({ report, checking, error, onRecheck, onDismiss }: P
           <button
             type="button"
             className="primary-button"
-            onClick={onRecheck}
+            onClick={primaryEntersApp ? onDismiss : onRecheck}
             disabled={checking}
           >
-            {isChecking && <Loader2 className="spin" size={15} aria-hidden />}
+            {isChecking && <Icon name="spinner" size="small" className="spin" />}
             {primaryIsRecheck ? variant.primaryLabel : "Continue"}
           </button>
           {status !== "ready" && (

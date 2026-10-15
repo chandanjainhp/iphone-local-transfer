@@ -2,7 +2,7 @@
 //! shelling out, and explain — per OS — what is missing.
 
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub const TOOL_ID: &str = "idevice_id";
 pub const TOOL_INFO: &str = "ideviceinfo";
@@ -59,24 +59,50 @@ pub struct Diagnostics {
     pub mock_available: bool,
 }
 
-/// Candidate directories for the toolchain, most specific first:
-/// a `tools/` folder bundled next to the executable, the executable's own
-/// directory (common for Windows zip installs), then PATH, then the usual
-/// Homebrew prefixes on macOS.
-fn candidate_dirs() -> Vec<PathBuf> {
-    let mut dirs = Vec::new();
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(dir) = exe.parent() {
-            dirs.push(dir.join("tools"));
-            dirs.push(dir.to_path_buf());
+/// True when `path` is a regular file we could plausibly execute.
+///
+/// On Unix at least one execute bit must be set, so a non-executable stray file
+/// cannot shadow a valid tool later in the search order. On Windows the
+/// `.exe` suffix already decided it.
+fn is_executable(path: &Path) -> bool {
+    let Ok(meta) = std::fs::metadata(path) else {
+        return false;
+    };
+    if !meta.is_file() {
+        return false;
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if meta.permissions().mode() & 0o111 == 0 {
+            return false;
         }
     }
+    true
+}
+
+/// Candidate directories for the toolchain, most trusted first.
+///
+/// PATH and the usual Homebrew prefixes come first, then a `tools/` folder
+/// bundled next to the executable, then the executable's own directory (common
+/// for Windows zip installs). The directory next to the executable can be
+/// user-writable, so it must never take precedence over the tool the user
+/// actually installed — but it is still honoured as a fallback, which keeps
+/// self-contained installs working.
+fn candidate_dirs() -> Vec<PathBuf> {
+    let mut dirs = Vec::new();
     if let Some(paths) = std::env::var_os("PATH") {
         dirs.extend(std::env::split_paths(&paths));
     }
     if cfg!(target_os = "macos") {
         dirs.push(PathBuf::from("/opt/homebrew/bin"));
         dirs.push(PathBuf::from("/usr/local/bin"));
+    }
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            dirs.push(dir.join("tools"));
+            dirs.push(dir.to_path_buf());
+        }
     }
     dirs
 }
@@ -90,7 +116,7 @@ pub fn find_tool(name: &str) -> Option<PathBuf> {
     };
     for dir in candidate_dirs() {
         let candidate = dir.join(format!("{name}{exe_ext}"));
-        if candidate.is_file() {
+        if is_executable(&candidate) {
             return Some(candidate);
         }
     }
@@ -146,5 +172,84 @@ pub fn diagnostics() -> Diagnostics {
         toolchain_ready,
         install_hint: install_hint(),
         mock_available: cfg!(debug_assertions),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn scratch(tag: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("lit-platform-{}-{tag}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn non_executable_files_are_not_usable_tools() {
+        let dir = scratch("mode");
+        let plain = dir.join("idevice_id");
+        std::fs::write(&plain, b"#!/bin/sh\n").unwrap();
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            // 0644: readable but not executable — must not be accepted.
+            std::fs::set_permissions(&plain, std::fs::Permissions::from_mode(0o644)).unwrap();
+            assert!(
+                !is_executable(&plain),
+                "a non-executable file is not a tool"
+            );
+
+            std::fs::set_permissions(&plain, std::fs::Permissions::from_mode(0o755)).unwrap();
+            assert!(is_executable(&plain), "an executable file is accepted");
+        }
+        #[cfg(not(unix))]
+        {
+            assert!(is_executable(&plain));
+        }
+
+        // Directories and missing paths are never tools.
+        assert!(!is_executable(&dir));
+        assert!(!is_executable(&dir.join("does-not-exist")));
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    /// The directory beside the executable can be user-writable (zip installs,
+    /// extracted AppImages), so the user's PATH must be searched first.
+    #[test]
+    fn path_is_searched_before_the_executable_directory() {
+        let dirs = candidate_dirs();
+        let exe_dir = std::env::current_exe()
+            .ok()
+            .and_then(|e| e.parent().map(Path::to_path_buf));
+        let Some(exe_dir) = exe_dir else {
+            return; // no executable path in this environment
+        };
+        let tools_dir = exe_dir.join("tools");
+        let bundled_pos = dirs.iter().position(|d| *d == tools_dir || *d == exe_dir);
+        let path_entries = std::env::var_os("PATH")
+            .map(|p| std::env::split_paths(&p).count())
+            .unwrap_or(0);
+        if let Some(pos) = bundled_pos {
+            assert!(
+                pos >= path_entries,
+                "bundled tools dir ({pos}) must not precede the {path_entries} PATH entries"
+            );
+        }
+    }
+
+    #[test]
+    fn a_bundled_fallback_is_still_available() {
+        let dirs = candidate_dirs();
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(dir) = exe.parent() {
+                assert!(
+                    dirs.contains(&dir.join("tools")) || dirs.contains(&dir.to_path_buf()),
+                    "the bundled tools directory stays as a fallback"
+                );
+            }
+        }
     }
 }

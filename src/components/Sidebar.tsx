@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  ArrowDownToLine,
-  CircleHelp,
-  Folder,
-  Image as ImageIcon,
-  PauseOctagon,
-  Smartphone,
-  Video,
-} from "lucide-react";
+import { Icon } from "../icons";
 import type { Category, Diagnostics, MockDeviceState } from "../types";
 
 interface SidebarProps {
@@ -41,14 +33,14 @@ export function Sidebar({
     <aside className="sidebar">
       <div className="brand">
         <span className="brand-mark">
-          <ArrowDownToLine size={18} />
+          <Icon name="brand" size="action" />
         </span>
         <span>Local Transfer</span>
       </div>
 
       <div className="side-label">Device</div>
       <div className="nav-item selected">
-        <Smartphone size={17} />
+        <Icon name="device" size="nav" />
         <span>{demoDevice ? "Demo iPhone" : "iPhone"}</span>
         <span
           className={`status-dot ${deviceReady ? "on" : ""}`}
@@ -68,11 +60,11 @@ export function Sidebar({
           onClick={() => onCategory(cat)}
         >
           {cat === "All Media" ? (
-            <Folder size={17} />
+            <Icon name="allMedia" size="nav" />
           ) : cat === "Photos" ? (
-            <ImageIcon size={17} />
+            <Icon name="photos" size="nav" />
           ) : (
-            <Video size={17} />
+            <Icon name="videos" size="nav" />
           )}
           <span>{cat}</span>
         </button>
@@ -82,7 +74,7 @@ export function Sidebar({
         {diag?.mock_available ? (
           <div className="demo-block">
             <button type="button" className="help-button" onClick={onToggleMock}>
-              <PauseOctagon size={16} />
+              <Icon name="demo" size="medium" />
               {mockEnabled ? "Turn Off Demo Mode" : "Demo Mode"}
             </button>
             {mockEnabled && (
@@ -107,7 +99,7 @@ export function Sidebar({
           onClick={() => setShowHelp(!showHelp)}
           aria-expanded={showHelp}
         >
-          <CircleHelp size={17} /> Help &amp; Connection
+          <Icon name="help" size="nav" /> Help &amp; Connection
         </button>
         {showHelp && (
           <p className="help-copy">

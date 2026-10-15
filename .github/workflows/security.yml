@@ -1,0 +1,110 @@
+name: Security
+
+# Dependency and secret gates.
+#
+# Runs on every push and pull request, and weekly as well: an advisory published
+# *after* the last commit must still surface even though nothing changed here.
+#
+# Hardening notes
+#  * Only one third-party action is used, pinned to a full commit SHA so a
+#    moved or re-pointed tag cannot change what runs. The Rust and Node
+#    toolchains come from the runner image instead of extra actions.
+#  * `permissions` is dropped to read-only, so a compromised step cannot write
+#    to the repository or its packages.
+#  * cargo-audit is built from source at a pinned version rather than
+#    downloaded as a binary, so crates.io checksums verify it.
+#  * The secret scan is a self-contained script in this repo (no third-party
+#    scanner), and it never prints matched text into the log.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-advisories:
+    name: Dependency advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # actions/checkout, tag v4 pinned to its commit SHA.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Show the pinned toolchain
+        run: |
+          set -euo pipefail
+          rustc --version
+          cargo --version
+          node --version
+          npm --version
+
+      # `cargo audit` exits non-zero on a real vulnerability and zero on the
+      # informational warnings it prints. That is the gate we want: the two
+      # known warnings (RUSTSEC-2024-0429 glib, RUSTSEC-2024-0370
+      # proc-macro-error) stay visible in the log and are tracked with the
+      # reachability analysis in security-audit-report.md, while anything new
+      # fails the build.
+      - name: Rust advisories
+        working-directory: src-tauri
+        run: |
+          set -euo pipefail
+          cargo install cargo-audit@0.22.2 --locked
+          cargo audit
+
+      - name: npm advisories (shipped dependencies only)
+        run: |
+          set -euo pipefail
+          npm audit --omit=dev --audit-level=high
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Scan tracked files for credential material
+        run: |
+          set -euo pipefail
+          bash scripts/scan-secrets.sh
+
+  verify:
+    name: Format, lint, and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      # Tauri v2 Linux prerequisites: webkit2gtk 4.1 and its GTK/Soup stack.
+      - name: Install Tauri system dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential pkg-config libssl-dev \
+            libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libsoup-3.0-dev
+
+      - name: Rust format, lint, and unit tests
+        working-directory: src-tauri
+        run: |
+          set -euo pipefail
+          rustup component add rustfmt clippy
+          cargo fmt --all --check
+          cargo clippy --all-targets -- -D warnings
+          cargo test
+
+      - name: Frontend typecheck and production build
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build

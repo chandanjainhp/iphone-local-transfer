@@ -60,6 +60,29 @@ pub struct AppState {
     transfer_cancel: Mutex<Option<Arc<AtomicBool>>>,
 }
 
+// Lock helpers that recover from poisoning.
+//
+// A poisoned lock means an earlier handler panicked while holding it. The state
+// behind these locks is plain data (a mode flag, a device snapshot, caches, a
+// cancel flag), so the last value is still usable. Continuing with it keeps a
+// single panic from escalating into a permanently unusable command surface —
+// previously every later command panicked on `.expect("... lock")`.
+fn lock<T>(m: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+    m.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+fn read<T>(m: &RwLock<T>) -> std::sync::RwLockReadGuard<'_, T> {
+    m.read().unwrap_or_else(|e| e.into_inner())
+}
+
+// Only the development-only demo-mode command writes through this helper, so it
+// is gated with the same cfg as its call site: without this, release builds
+// compile it and warn that it is never used.
+#[cfg(debug_assertions)]
+fn write<T>(m: &RwLock<T>) -> std::sync::RwLockWriteGuard<'_, T> {
+    m.write().unwrap_or_else(|e| e.into_inner())
+}
+
 impl AppState {
     fn new() -> Self {
         Self {
@@ -132,7 +155,7 @@ fn spawn_poller(app: AppHandle) {
     std::thread::spawn(move || loop {
         let snapshot = {
             let state = app.state::<AppState>();
-            let mode = *state.mode.read().expect("mode lock");
+            let mode = *read(&state.mode);
             let result = match provider_for(mode) {
                 Ok(provider) => provider.detect().map(|mut snap| {
                     if snap.source.is_empty() {
@@ -152,7 +175,7 @@ fn spawn_poller(app: AppHandle) {
                     snap.source = "mock (demo only)".to_string();
                 }
             }
-            let mut last = state.last_snapshot.lock().expect("snapshot lock");
+            let mut last = lock(&state.last_snapshot);
             let changed = serde_json::to_string(&*last)
                 .ok()
                 .map(|prev| prev != serde_json::to_string(&snap).unwrap_or_default())
@@ -193,7 +216,7 @@ async fn check_environment() -> environment::EnvReport {
 /// Last known device status (the poller keeps it fresh and also pushes events).
 #[tauri::command]
 fn get_device_status(state: State<AppState>) -> DeviceSnapshot {
-    state.last_snapshot.lock().expect("snapshot lock").clone()
+    lock(&state.last_snapshot).clone()
 }
 
 /// Scan the connected iPhone for accessible photos/videos. Runs off the UI
@@ -203,8 +226,8 @@ async fn list_media(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<Vec<MediaItem>, AppError> {
-    let mode = *state.mode.read().expect("mode lock");
-    let snapshot = state.last_snapshot.lock().expect("snapshot lock").clone();
+    let mode = *read(&state.mode);
+    let snapshot = lock(&state.last_snapshot).clone();
     if !snapshot.is_actionable() {
         let code = match snapshot.state {
             DeviceState::NeedsTrust => ErrorCode::NeedsTrust,
@@ -229,7 +252,7 @@ async fn list_media(
         let provider = provider_for(mode)?;
         let items = provider.media().list_media(&udid)?;
         let state = app.state::<AppState>();
-        *state.media_cache.lock().expect("cache lock") = Some(MediaCache {
+        *lock(&state.media_cache) = Some(MediaCache {
             udid: udid.clone(),
             items: items.clone(),
         });
@@ -249,8 +272,8 @@ async fn get_media_preview(
     state: State<'_, AppState>,
     id: String,
 ) -> Result<Option<String>, AppError> {
-    let mode = *state.mode.read().expect("mode lock");
-    let snapshot = state.last_snapshot.lock().expect("snapshot lock").clone();
+    let mode = *read(&state.mode);
+    let snapshot = lock(&state.last_snapshot).clone();
     if !snapshot.is_actionable() {
         return Ok(None);
     }
@@ -259,7 +282,7 @@ async fn get_media_preview(
         None => return Ok(None),
     };
     let (source_path, cache_key) = {
-        let cache = state.media_cache.lock().expect("cache lock");
+        let cache = lock(&state.media_cache);
         let cache = match cache.as_ref().filter(|c| c.udid == udid) {
             Some(c) => c,
             // No scan yet (or a different device): nothing to preview.
@@ -276,10 +299,7 @@ async fn get_media_preview(
             format!("{udid}|{}|{:?}|{:?}", item.id, item.size, item.modified_ms),
         )
     };
-    if let Some(url) = state
-        .preview_cache
-        .lock()
-        .expect("preview lock")
+    if let Some(url) = lock(&state.preview_cache)
         .get(&cache_key)
         .map(str::to_string)
     {
@@ -295,11 +315,7 @@ async fn get_media_preview(
 
     let url = image.map(|img| preview::data_url(&img.bytes, img.mime));
     if let Some(url) = &url {
-        state
-            .preview_cache
-            .lock()
-            .expect("preview lock")
-            .insert(cache_key, url.clone());
+        lock(&state.preview_cache).insert(cache_key, url.clone());
     }
     Ok(url)
 }
@@ -342,7 +358,7 @@ fn start_transfer(
     new_only: bool,
 ) -> Result<(), AppError> {
     let cancel = {
-        let mut slot = state.transfer_cancel.lock().expect("transfer lock");
+        let mut slot = lock(&state.transfer_cancel);
         if slot.is_some() {
             return Err(AppError::new(
                 ErrorCode::Busy,
@@ -355,15 +371,15 @@ fn start_transfer(
     };
 
     let result = (|| -> Result<(Box<dyn DeviceProvider>, String, TransferRequest), AppError> {
-        let mode = *state.mode.read().expect("mode lock");
+        let mode = *read(&state.mode);
         let provider = provider_for(mode)?;
-        let snapshot = state.last_snapshot.lock().expect("snapshot lock").clone();
+        let snapshot = lock(&state.last_snapshot).clone();
         let udid = snapshot
             .device
             .as_ref()
             .map(|d| d.udid.clone())
             .ok_or_else(|| AppError::new(ErrorCode::NoDevice, "No iPhone is connected."))?;
-        let cache_guard = state.media_cache.lock().expect("cache lock");
+        let cache_guard = lock(&state.media_cache);
         let cache = cache_guard
             .as_ref()
             .filter(|c| c.udid == udid)
@@ -384,9 +400,22 @@ fn start_transfer(
             ));
         }
         drop(cache_guard);
+        // Defence in depth: the webview is the trust boundary, so never accept
+        // an empty or relative destination — a relative path would silently
+        // resolve against the process working directory. Existence,
+        // directory-ness and writability are verified by `check_destination`
+        // immediately after this, on the invoker thread and again on the
+        // transfer thread.
+        let destination = PathBuf::from(destination);
+        if destination.as_os_str().is_empty() || !destination.is_absolute() {
+            return Err(AppError::new(
+                ErrorCode::DestinationInvalid,
+                "Choose a destination folder on this computer.",
+            ));
+        }
         let request = TransferRequest {
             items: chosen,
-            destination: PathBuf::from(destination),
+            destination,
             conflict,
             new_only,
         };
@@ -396,7 +425,7 @@ fn start_transfer(
     let (provider, udid, request) = match result {
         Ok(triple) => triple,
         Err(e) => {
-            *state.transfer_cancel.lock().expect("transfer lock") = None;
+            *lock(&state.transfer_cancel) = None;
             return Err(e);
         }
     };
@@ -405,7 +434,7 @@ fn start_transfer(
     // before any device work starts. The transfer thread re-checks anyway, so
     // a race cannot slip a bad folder through.
     if let Err(e) = check_destination(&request.destination) {
-        *state.transfer_cancel.lock().expect("transfer lock") = None;
+        *lock(&state.transfer_cancel) = None;
         return Err(e);
     }
 
@@ -418,7 +447,7 @@ fn start_transfer(
             run_transfer(provider.media(), &udid, &request, &cancel, &mut emit);
         }
         let state = app.state::<AppState>();
-        *state.transfer_cancel.lock().expect("transfer lock") = None;
+        *lock(&state.transfer_cancel) = None;
     });
     Ok(())
 }
@@ -426,12 +455,7 @@ fn start_transfer(
 /// Request cancellation of the running batch (safe at any point).
 #[tauri::command]
 fn cancel_transfer(state: State<AppState>) {
-    if let Some(flag) = state
-        .transfer_cancel
-        .lock()
-        .expect("transfer lock")
-        .as_ref()
-    {
+    if let Some(flag) = lock(&state.transfer_cancel).as_ref() {
         flag.store(true, Ordering::SeqCst);
     }
 }
@@ -440,12 +464,7 @@ fn cancel_transfer(state: State<AppState>) {
 /// builds so mock data can never be reported as a real device in production.
 #[tauri::command]
 fn set_mock_mode(state: State<AppState>, enabled: bool) -> Result<bool, AppError> {
-    if state
-        .transfer_cancel
-        .lock()
-        .expect("transfer lock")
-        .is_some()
-    {
+    if lock(&state.transfer_cancel).is_some() {
         return Err(AppError::new(
             ErrorCode::Busy,
             "Wait for the current transfer to finish.",
@@ -462,8 +481,8 @@ fn set_mock_mode(state: State<AppState>, enabled: bool) -> Result<bool, AppError
     }
     #[cfg(debug_assertions)]
     {
-        *state.mode.write().expect("mode lock") = if enabled { Mode::Mock } else { Mode::Native };
-        *state.media_cache.lock().expect("cache lock") = None;
+        *write(&state.mode) = if enabled { Mode::Mock } else { Mode::Native };
+        *lock(&state.media_cache) = None;
         Ok(enabled)
     }
 }
@@ -482,7 +501,7 @@ fn set_mock_device_state(state: State<AppState>, value: String) -> Result<(), Ap
     }
     #[cfg(debug_assertions)]
     {
-        if *state.mode.read().expect("mode lock") != Mode::Mock {
+        if *read(&state.mode) != Mode::Mock {
             return Err(AppError::new(
                 ErrorCode::Unsupported,
                 "Enable demo mode first.",
@@ -500,7 +519,7 @@ fn set_mock_device_state(state: State<AppState>, value: String) -> Result<(), Ap
             }
         };
         MOCK_DEVICE_STATE.store(code, Ordering::Relaxed);
-        *state.media_cache.lock().expect("cache lock") = None;
+        *lock(&state.media_cache) = None;
         Ok(())
     }
 }

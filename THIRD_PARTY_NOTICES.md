@@ -45,11 +45,30 @@ Rust crates licensed "MIT OR Apache-2.0" require only that the binary
 retains their copyright notices; no source-offer obligation applies to
 permissively licensed code.
 
+### Frontend npm dependencies (bundled into the JS/CSS build output)
+
+Only the packages below are imported by shipped code; everything else in
+`package-lock.json` is build tooling that never reaches the bundle.
+
+| Package | Version | License | Role | Source |
+| --- | --- | --- | --- | --- |
+| `react`, `react-dom` | 18.3.1 | MIT | UI runtime | https://github.com/facebook/react |
+| `@tauri-apps/api` | 2.12.3 | MIT or Apache-2.0 | Typed bridge to the Rust commands and events | https://github.com/tauri-apps/tauri |
+| `@phosphor-icons/react` | 2.1.10 | MIT | The complete UI icon set | https://github.com/phosphor-icons/react |
+
+The icon package is consumed **per glyph** through the semantic registry in
+`src/icons.tsx`: imports are tree-shaken, so only the glyphs actually
+referenced reach the bundle rather than the whole icon library. Its MIT
+license permits use, modification, and redistribution with attribution,
+which this file provides. No icon font or SVG sprite is bundled — the
+glyphs are inlined React components.
+
 ### Application resources
 
 The application bundle includes first-party code (Rust backend, React
-frontend) and first-party icons only. No third-party fonts are bundled: the
-UI uses the system font stack.
+frontend); the only third-party assets inside it are the bundled
+`@phosphor-icons/react` glyph modules listed above. No third-party fonts are
+bundled: the UI uses the system font stack.
 
 ---
 

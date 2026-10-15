@@ -1,5 +1,5 @@
-import { CheckCircle2, ChevronDown, CircleX, PauseOctagon } from "lucide-react";
 import { formatBytes, formatEta, formatSpeed } from "../format";
+import { Icon } from "../icons";
 import type { FileOutcome, FinishedPayload, ProgressPayload } from "../types";
 
 export interface FileResult {
@@ -68,7 +68,7 @@ export function TransferProgress({ transfer, onCancel }: TransferProgressProps) 
           </p>
         </div>
         <button type="button" className="cancel-button" onClick={onCancel}>
-          <CircleX size={14} /> Cancel
+          <Icon name="cancel" size="small" /> Cancel
         </button>
       </div>
 
@@ -152,15 +152,16 @@ export function TransferSummary({ finished, onDismiss }: TransferSummaryProps) {
       : "success";
 
   return (
-    <section className={`summary-panel ${kind}`}>
+    <section
+      className={`summary-panel ${kind}`}
+      role={kind === "error" ? "alert" : "status"}
+      aria-live={kind === "error" ? "assertive" : "polite"}
+    >
       <div className="summary-icon">
-        {kind === "success" ? (
-          <CheckCircle2 size={20} />
-        ) : kind === "cancelled" ? (
-          <PauseOctagon size={20} />
-        ) : (
-          <CircleX size={20} />
-        )}
+        <Icon
+          name={kind === "success" ? "success" : kind === "cancelled" ? "stopped" : "error"}
+          size="large"
+        />
       </div>
       <div className="summary-copy">
         <h2>
@@ -186,8 +187,8 @@ export function TransferSummary({ finished, onDismiss }: TransferSummaryProps) {
 }
 
 function OutcomeIcon({ outcome }: { outcome: FileOutcome }) {
-  if (outcome === "completed") return <CheckCircle2 size={14} />;
-  if (outcome === "skipped") return <ChevronDown size={14} />;
-  if (outcome === "interrupted") return <PauseOctagon size={14} />;
-  return <CircleX size={14} />;
+  if (outcome === "completed") return <Icon name="success" size="small" />;
+  if (outcome === "skipped") return <Icon name="skipped" size="small" />;
+  if (outcome === "interrupted") return <Icon name="stopped" size="small" />;
+  return <Icon name="error" size="small" />;
 }

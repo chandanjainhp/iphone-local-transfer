@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#
+# Optional pre-commit secret gate. Reuses the same scanner as CI so the two can
+# never drift apart.
+#
+# This hook is opt-in, because it changes your local Git configuration:
+#
+#   git config core.hooksPath .githooks
+#
+# Disable it again with `git config --unset core.hooksPath`. Hooks are local and
+# are never pushed, so this is a convenience, not a security boundary — the
+# authoritative gate is the `secret-scan` job in .github/workflows/security.yml.
+
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+exec bash "$root/scripts/scan-secrets.sh"

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { Icon } from "../icons";
 
 interface ConfirmDialogProps {
   /** Number of files the user is about to replace with. */
@@ -42,7 +42,7 @@ export function ConfirmDialog({ count, onConfirm, onCancel }: ConfirmDialogProps
             Cancel
           </button>
           <button type="button" className="primary-button" onClick={onConfirm}>
-            <CheckCircle2 size={15} /> Replace Files
+            <Icon name="check" size="small" /> Replace Files
           </button>
         </div>
       </div>

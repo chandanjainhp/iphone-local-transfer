@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { Image as ImageIcon, LoaderCircle, Video, X } from "lucide-react";
 import { usePreview } from "../previews";
+import { Icon, IconButton } from "../icons";
 import { formatBytes, formatDateTime } from "../format";
 import type { MediaItem } from "../types";
 
@@ -34,22 +34,21 @@ export function PreviewDialog({ item, udid, onClose }: PreviewDialogProps) {
         aria-label={`Preview of ${item.name}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
+        <IconButton
+          icon="close"
+          label={`Close the preview of ${item.name}`}
+          size="small"
           className="preview-close"
           onClick={onClose}
-          aria-label="Close preview"
-        >
-          <X size={15} />
-        </button>
+        />
         <div className={`preview-media ${url ? "" : "empty"}`}>
           {url ? (
             <img src={url} alt={item.name} />
           ) : loading ? (
-            <LoaderCircle size={26} className="spin" />
+            <Icon name="spinner" size="empty" className="spin" />
           ) : (
             <>
-              {item.kind === "photo" ? <ImageIcon size={28} /> : <Video size={28} />}
+              <Icon name={item.kind === "photo" ? "photos" : "videos"} size="hero" />
               <p>No preview is available for this file.</p>
             </>
           )}

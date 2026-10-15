@@ -1,5 +1,5 @@
-import { Image as ImageIcon, LoaderCircle, Play, Video } from "lucide-react";
 import { usePreview } from "../previews";
+import { Icon } from "../icons";
 import { formatBytes, formatDate, formatTime } from "../format";
 import type { MediaItem } from "../types";
 
@@ -43,15 +43,15 @@ export function FileRow({ item, checked, busy, udid, onToggle, onPreview }: File
         {url ? (
           <img className="thumb-img" src={url} alt="" draggable={false} />
         ) : loading ? (
-          <LoaderCircle size={15} className="spin" />
+          <Icon name="spinner" size="small" className="spin" />
         ) : item.kind === "photo" ? (
-          <ImageIcon size={15} />
+          <Icon name="photos" size="small" />
         ) : (
-          <Video size={15} />
+          <Icon name="videos" size="small" />
         )}
         {item.kind === "video" && url ? (
           <span className="thumb-play" aria-hidden="true">
-            <Play size={8} />
+            <Icon name="play" size="badge" />
           </span>
         ) : null}
       </button>

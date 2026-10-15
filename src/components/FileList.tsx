@@ -1,4 +1,4 @@
-import { CircleX, Folder, Image as ImageIcon, LoaderCircle, RefreshCw } from "lucide-react";
+import { Icon } from "../icons";
 import { FileRow } from "./FileRow";
 import type { Category, MediaItem, SortOrder } from "../types";
 
@@ -102,7 +102,7 @@ export function FileList(props: FileListProps) {
       return (
         <section className="empty-state">
           <div className="empty-icon">
-            <LoaderCircle size={27} className="spin" strokeWidth={1.5} />
+            <Icon name="spinner" size="empty" className="spin" />
           </div>
           <h3>{scanning ? "Reading Your Library…" : "Transferring…"}</h3>
           <p>Please keep your iPhone unlocked and connected.</p>
@@ -113,12 +113,12 @@ export function FileList(props: FileListProps) {
       return (
         <section className="empty-state error">
           <div className="empty-icon">
-            <CircleX size={27} strokeWidth={1.5} />
+            <Icon name="error" size="empty" />
           </div>
           <h3>Could Not Read Your Photos</h3>
           <p>{scanError}</p>
           <button type="button" className="secondary-button" onClick={onScan}>
-            <RefreshCw size={14} /> Try Again
+            <Icon name="refresh" size="small" /> Try Again
           </button>
         </section>
       );
@@ -127,7 +127,7 @@ export function FileList(props: FileListProps) {
       return (
         <section className="empty-state">
           <div className="empty-icon">
-            <Folder size={27} strokeWidth={1.5} />
+            <Icon name="allMedia" size="empty" />
           </div>
           <h3>{deviceReady ? "Ready to Scan" : "Nothing to Show Yet"}</h3>
           <p>
@@ -137,7 +137,7 @@ export function FileList(props: FileListProps) {
           </p>
           {deviceReady ? (
             <button type="button" className="secondary-button" onClick={onScan}>
-              <RefreshCw size={14} /> Scan Now
+              <Icon name="refresh" size="small" /> Scan Now
             </button>
           ) : null}
           <span className="scope-note">
@@ -151,7 +151,7 @@ export function FileList(props: FileListProps) {
       return (
         <section className="empty-state">
           <div className="empty-icon">
-            <ImageIcon size={27} strokeWidth={1.5} />
+            <Icon name="photos" size="empty" />
           </div>
           <h3>
             No{" "}

@@ -1,6 +1,6 @@
 [package]
 name = "local-iphone-transfer"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local-only iPhone USB media transfer"
 authors = ["Local Transfer contributors"]
 edition = "2021"

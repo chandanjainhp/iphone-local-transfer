@@ -164,31 +164,54 @@ enum PublishError {
     Io(AppError),
 }
 
-fn publish(tmp: &Path, target: &Path) -> Result<(), PublishError> {
-    // hard_link fails with AlreadyExists when something else won the race —
-    // it never clobbers. Same directory, so no cross-device issue.
+/// Fast path: a hard link either succeeds or fails with `AlreadyExists` — it
+/// can never replace an existing file. Returns `Ok(false)` when this filesystem
+/// has no hard-link support, so the caller must fall back to the claim path.
+fn publish_via_hard_link(tmp: &Path, target: &Path) -> Result<bool, PublishError> {
+    // Same directory, so no cross-device issue.
     match std::fs::hard_link(tmp, target) {
         Ok(()) => {
             let _ = std::fs::remove_file(tmp);
-            return Ok(());
+            Ok(true)
         }
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => Err(PublishError::Exists),
+        Err(_) => Ok(false),
+    }
+}
+
+/// Fallback for filesystems that do not support hard links (FAT/exFAT, many
+/// network shares, some container overlays).
+///
+/// `rename` alone is NOT safe here: POSIX rename replaces an existing target
+/// silently, which would destroy a file that appeared after the conflict check.
+/// Instead we first *claim* the name with an exclusive create, which fails
+/// rather than replacing, and only then rename our verified temp file over the
+/// placeholder we now own.
+fn publish_via_claim(tmp: &Path, target: &Path) -> Result<(), PublishError> {
+    match OpenOptions::new().write(true).create_new(true).open(target) {
+        Ok(placeholder) => drop(placeholder),
         Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
             return Err(PublishError::Exists)
         }
-        Err(_) => { /* filesystems without hard links: fall back to rename */ }
+        // Any other failure (read-only volume, permissions, quota) is reported
+        // as a real error; it must never be treated as "free to overwrite".
+        Err(e) => return Err(PublishError::Io(AppError::from(e))),
     }
     match std::fs::rename(tmp, target) {
         Ok(()) => Ok(()),
-        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => Err(PublishError::Exists),
         Err(e) => {
-            // Windows reports "file exists" as a generic error sometimes.
-            if target.exists() {
-                Err(PublishError::Exists)
-            } else {
-                Err(PublishError::Io(AppError::from(e)))
-            }
+            // Do not leave the empty placeholder behind for the user to find.
+            let _ = std::fs::remove_file(target);
+            Err(PublishError::Io(AppError::from(e)))
         }
     }
+}
+
+fn publish(tmp: &Path, target: &Path) -> Result<(), PublishError> {
+    if publish_via_hard_link(tmp, target)? {
+        return Ok(());
+    }
+    publish_via_claim(tmp, target)
 }
 
 fn sync_then_set_mtime(path: &Path, item: &MediaItem) -> Result<(), AppError> {
@@ -857,6 +880,67 @@ mod tests {
         assert_eq!(std::fs::read(dest.join("IMG_1.HEIC")).unwrap(), b"original");
         assert_eq!(std::fs::read(dest.join("IMG_1 (1).HEIC")).unwrap(), data);
         assert!(leftovers(&dest).is_empty());
+        std::fs::remove_dir_all(&dest).unwrap();
+    }
+
+    /// Regression for the silent-overwrite defect on filesystems without hard
+    /// links (FAT/exFAT, many network shares). The old fallback called
+    /// `rename()` directly, and POSIX rename replaces an existing target without
+    /// reporting an error — destroying a file that appeared during the copy.
+    #[test]
+    fn publish_fallback_never_replaces_an_existing_file() {
+        let dest = temp_dest("claim-noclobber");
+        let tmp = dest.join(".new.part");
+        let target = dest.join("victim.jpg");
+        std::fs::write(&tmp, b"NEW").unwrap();
+        std::fs::write(&target, b"ORIGINAL-USER-DATA").unwrap();
+
+        let result = publish_via_claim(&tmp, &target);
+
+        assert!(
+            matches!(result, Err(PublishError::Exists)),
+            "the fallback must report a conflict instead of publishing"
+        );
+        assert_eq!(
+            std::fs::read(&target).unwrap(),
+            b"ORIGINAL-USER-DATA",
+            "the pre-existing file must be untouched"
+        );
+        std::fs::remove_dir_all(&dest).unwrap();
+    }
+
+    /// The fallback must still publish normally when the name really is free.
+    #[test]
+    fn publish_fallback_publishes_when_the_name_is_free() {
+        let dest = temp_dest("claim-free");
+        let tmp = dest.join(".new.part");
+        let target = dest.join("fresh.jpg");
+        std::fs::write(&tmp, b"NEW").unwrap();
+
+        assert!(publish_via_claim(&tmp, &target).is_ok());
+        assert_eq!(std::fs::read(&target).unwrap(), b"NEW");
+        assert!(!tmp.exists(), "the temp file is consumed");
+        assert!(leftovers(&dest).is_empty(), "no placeholder left behind");
+        std::fs::remove_dir_all(&dest).unwrap();
+    }
+
+    /// End-to-end: `publish` refuses when the target already exists, whichever
+    /// path (hard link or claim) the filesystem takes.
+    #[test]
+    fn publish_refuses_an_existing_target_end_to_end() {
+        let dest = temp_dest("publish-exists");
+        let tmp = dest.join(".new.part");
+        let target = dest.join("taken.jpg");
+        std::fs::write(&tmp, b"NEW").unwrap();
+        std::fs::write(&target, b"KEEP").unwrap();
+
+        assert!(matches!(publish(&tmp, &target), Err(PublishError::Exists)));
+        assert_eq!(std::fs::read(&target).unwrap(), b"KEEP");
+
+        // And it succeeds once the name is free.
+        std::fs::remove_file(&target).unwrap();
+        assert!(publish(&tmp, &target).is_ok());
+        assert_eq!(std::fs::read(&target).unwrap(), b"NEW");
         std::fs::remove_dir_all(&dest).unwrap();
     }
 

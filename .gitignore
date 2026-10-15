@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 target/
+src-tauri/target/
 
 # IDE
 .idea/
@@ -26,14 +27,26 @@ npm-debug.log*
 .env.local
 .env.*.local
 
-# Tauri
-.src-tauri/target/
+# Secrets and credentials
+# These should never be committed. There are no such files in this project
+# today; these patterns are preventive.
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+credentials.json
+service-account*.json
+*.kubeconfig
+*.tfstate
+*.tfvars
+.npmrc
+.pypirc
 
-# Rust
-Cargo.lock
-
-# Generated files
-package-lock.json
+# NOTE: package-lock.json and Cargo.lock are intentionally TRACKED.
+# This is an application, not a library, so the lockfiles must be committed to
+# make builds reproducible and to let dependency scanning (cargo audit,
+# osv-scanner, npm audit) verify the exact audited versions.
 
 # Agent/CLI specific
 .agents/

@@ -1,4 +1,4 @@
-import { ArrowDownToLine, Folder } from "lucide-react";
+import { Icon } from "../icons";
 import type { ConflictPolicy } from "../types";
 
 interface DestinationToolbarProps {
@@ -40,7 +40,7 @@ export function DestinationToolbar({
   return (
     <div className="action-toolbar">
       <div className="destination">
-        <Folder size={18} />
+        <Icon name="destination" size="action" />
         <div>
           <span className="destination-label">Save To</span>
           <span className="destination-path" title={destination ?? undefined}>
@@ -79,7 +79,7 @@ export function DestinationToolbar({
           title={selectedDisabledReason ?? "Copy the selected files to the destination folder"}
           onClick={onTransferSelected}
         >
-          <ArrowDownToLine size={17} />
+          <Icon name="transfer" size="action" />
           {running
             ? "Transferring…"
             : selectedCount > 0

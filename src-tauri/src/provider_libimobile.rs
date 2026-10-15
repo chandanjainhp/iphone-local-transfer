@@ -74,16 +74,37 @@ fn read_limited(path: &Path) -> String {
     String::from_utf8_lossy(&buf).into_owned()
 }
 
-/// Unique scratch path for a preview download (`.img` so image tooling that
-/// sniffs extensions sees a neutral suffix).
-fn temp_preview_path() -> Result<PathBuf, AppError> {
+/// Create a private scratch directory for one preview download.
+///
+/// The preview file is written by the `afcclient` child process, so we cannot
+/// simply pre-create it with `create_new` (we do not know whether the tool
+/// tolerates an existing destination). Instead the *directory* is created
+/// atomically with owner-only permissions (0700 on Unix) and a fresh name, so
+/// another local user can neither pre-create the path nor plant a symlink at
+/// it — closing the insecure-temporary-file window in `/tmp`.
+fn private_scratch_dir() -> Result<PathBuf, AppError> {
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let mut p = std::env::temp_dir();
-    p.push(format!("lit-prev-{}-{nanos}.img", std::process::id()));
-    Ok(p)
+    let mut dir = std::env::temp_dir();
+    dir.push(format!("lit-prev-{}-{nanos}", std::process::id()));
+
+    let mut builder = std::fs::DirBuilder::new();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::DirBuilderExt;
+        builder.mode(0o700);
+    }
+    // `create` (not `create_dir_all`) fails if the name already exists, so a
+    // pre-created directory is a hard error rather than silent reuse.
+    builder.create(&dir).map_err(AppError::from)?;
+    Ok(dir)
+}
+
+/// Best-effort removal of a scratch directory and its contents.
+fn remove_dir_quietly(dir: &Path) {
+    let _ = std::fs::remove_dir_all(dir);
 }
 
 /// Read a downloaded preview with a hard cap: one extra byte past the limit
@@ -841,7 +862,8 @@ impl MediaSource for LibimobileProvider {
             let Some(entry) = entry else { continue };
 
             let remote = format!("{dir}/{}", entry.name);
-            let local = temp_preview_path()?;
+            let scratch = private_scratch_dir()?;
+            let local = scratch.join("preview.img");
             let fetched = run_logged(
                 &afc,
                 &["-u", udid, "get", &remote, &local.to_string_lossy()],
@@ -854,18 +876,18 @@ impl MediaSource for LibimobileProvider {
                 Ok(out) => {
                     let err = classify_afc_failure(&out.text);
                     if err.is_device_level() {
-                        remove_quietly(&local);
+                        remove_dir_quietly(&scratch);
                         return Err(err);
                     }
                     None
                 }
                 Err(e) if e.is_device_level() => {
-                    remove_quietly(&local);
+                    remove_dir_quietly(&scratch);
                     return Err(e);
                 }
                 Err(_) => None,
             };
-            remove_quietly(&local);
+            remove_dir_quietly(&scratch);
             if image.is_some() {
                 return Ok(image);
             }
