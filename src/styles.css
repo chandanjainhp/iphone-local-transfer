@@ -1,12 +1,35 @@
 /* ==========================================================================
-   Local iPhone Transfer — Apple web design language
+   Mavora — visual identity
 
-   Applied from the Apple-design analysis (DESIGN-apple.md):
-   - One interactive colour and nothing else: Action Blue #0066cc on light
-     surfaces, Sky Link Blue #2997ff on dark tiles, Focus Blue #0071e3 rings.
-   - Surfaces do the separating. White canvas, parchment #f5f5f7 page, pearl
-     #fafafc ghost fill, and the near-black tile ramp (#272729 / #2a2a2c /
-     #252527 / #000000). A colour change is the divider.
+   Mavora is written in the Apple web design language (DESIGN-apple.md) and
+   dressed in Mavora's own four colours:
+
+     midnight navy  #101827  the mark's tile, the dark canvas, ink on cyan
+     cyan           #06B6D4  the single interactive colour
+     white          #FFFFFF  the light canvas and the mark's left slope
+     slate          #64748B  the neutral mid-tone: neutral glyphs, hairlines
+
+   Applied through tokens only — no rule writes a colour — so the identity is
+   edited in this one block, and the light and dark appearances stay in step.
+
+   Cyan is bright: #06B6D4 measures 2.43:1 on white, so it cannot carry text
+   and it cannot carry a white label. Rather than quietly using it where it
+   fails, three measured steps follow from the one brand cyan:
+
+     --accent          #0E7490  5.36:1 on white — accent text, icons, links
+     --accent-solid    #06B6D4  the primary button's fill, with midnight-navy
+                                 #101827 ink on it (7.32:1). The brand cyan
+                                 stays the visible action colour instead of
+                                 being darkened into a second brand colour the
+                                 way a white-on-cyan label would force.
+     --accent-on-dark  #22D3EE  9.83:1 on the midnight canvas.
+
+   The four colours do the rest of the work: white canvas and slate-tinted
+   rail by day, midnight navy by night, and one navy tile ramp for raised
+   surfaces. Surfaces still do the separating — a colour change is the divider,
+   not a border or a shadow.
+
+   Kept from the source analysis, unchanged:
    - The type ladder verbatim: 34 / 28 / 21 / 17 / 14 / 12 / 10, weights
      400 and 600 (500 deliberately absent), negative tracking from 17 px up.
    - Radius grammar: 0 · 5 · 8 · 11 · 18 · pill. Nothing in between.
@@ -14,17 +37,24 @@
      surface. Chrome — cards, buttons, bars — is flat.
    - Every button presses with transform: scale(0.95).
 
+   The brand mark's own drawing is at the bottom of this block (the
+   `--brand-*` tokens); `public/favicon.svg` is the same geometry for the
+   favicon and the bundled app icons.
+
    Accessibility is not traded away for the look: text contrast is ≥ 4.5:1
    against its real surface, focus rings stay visible, and a
    prefers-reduced-motion answer still disables motion.
 
-   Two deliberate deviations from the source analysis, both recorded here
-   rather than silently taken:
+   Three deliberate deviations, recorded here rather than silently taken:
    1. no 56 / 40 px display sizes — this is a desktop utility, so the ladder
       starts at display-md (34 px) and stops there;
-   2. ink-muted-48 (#7a7a7a) is used as 5 % lighter ink only, i.e. shadows;
-      tertiary text uses #6e6e73 because #7a7a7a measures 4.29:1 on white and
-      text must clear 4.5:1.
+   2. the brand slate #64748B is a *graphic* colour, not a text colour: it
+      measures 4.76:1 on white but only 4.34:1 on the slate-100 rail. Tertiary
+      text therefore uses #475569 (7.58:1 / 6.92:1) and #64748B carries neutral
+      glyphs and hairlines, where the requirement is 3:1;
+   3. the primary button's label is midnight navy, not white, because a white
+      label on #06B6D4 is 2.43:1. Navy on cyan is 7.32:1 and preserves the
+      brand colour on the surface users press most.
    ========================================================================== */
 
 :root {
@@ -65,13 +95,33 @@
   --sp-xl: 32px;
   --sp-xxl: 48px;
 
+  /* ---- brand --------------------------------------------------------------
+     The four identity colours, and the mark's own drawing. The mark is one
+     geometry used three ways — sidebar, favicon, bundled app icon — so its
+     colours live here and not in the JSX. */
+  --brand-navy: #101827; /* midnight navy */
+  --brand-cyan: #06b6d4;
+  --brand-white: #ffffff;
+  --brand-slate: #64748b;
+  --brand-tile: var(--brand-navy);
+  --brand-slope-left: var(--brand-white);
+  --brand-slope-right: var(--brand-cyan);
+  /* On the light canvas the navy tile needs no help to read; on the dark canvas
+     it needs an edge, or the mark's corner disappears into the page (a navy tile
+     is ~1.16:1 against #0b1220). The edge is sized in *pixels* and drawn with
+     `non-scaling-stroke`, not in viewBox units: 1.5 units is 0.27px at the 18px
+     sidebar size, which is invisible, whereas a pixel edge is a pixel at every
+     size. See also the same hairline in public/favicon.svg. */
+  --brand-tile-edge: transparent;
+  --brand-tile-edge-width: 0px;
+
   /* ---- surfaces ----------------------------------------------------------- */
   --canvas: #ffffff;
-  --canvas-parchment: #f5f5f7;
-  --surface-pearl: #fafafc;
-  --surface-tile-1: #272729;
-  --surface-tile-2: #2a2a2c;
-  --surface-tile-3: #252527;
+  --canvas-parchment: #f1f5f9; /* slate-100 — the page and the rail */
+  --surface-pearl: #f8fafc; /* slate-50 — ghost fill */
+  --surface-tile-1: #101827; /* midnight navy, the content tile on dark */
+  --surface-tile-2: #16203a; /* one step up the navy ramp */
+  --surface-tile-3: #0b1220; /* the deepest step, below midnight */
   --surface-black: #000000;
 
   --bg-window: var(--canvas-parchment);
@@ -85,11 +135,11 @@
   --bg-sunken: var(--canvas-parchment);
   /* The analysis documents no hover state; these are the one step beyond
      parchment that a pressed/pointed row needs to register at all. */
-  --bg-hover: #ececf0;
-  --bg-pressed: #e3e3e8;
-  --bg-track: #ebebed;
+  --bg-hover: #e2e8f0; /* slate-200 */
+  --bg-pressed: #cbd5e1; /* slate-300 */
+  --bg-track: #e2e8f0;
   --bg-overlay: rgba(0, 0, 0, 0.48);
-  --bg-selected: #e9f2fd; /* Action Blue at ~8 %: selection */
+  --bg-selected: #cffafe; /* cyan at ~18 %: selection */
   /* The lightbox displays the artifact, so it gets the analysis's
      product-tile treatment: a mat, a stage, and the single drop-shadow under
      the image. In light mode the mat is parchment and the stage white, so the
@@ -102,28 +152,35 @@
   --chip-translucent-hover: rgba(210, 210, 215, 0.85);
   /* The chip is always light grey, so its glyph is always ink — in both
      appearances. */
-  --chip-ink: #1d1d1f;
+  --chip-ink: var(--brand-navy);
   /* A surface that is *raised* against its container, whatever the appearance:
      a selected rail row on parchment, an unread row in the popover. */
   --surface-raised: var(--canvas);
 
   /* ---- content (measured on --bg-surface) --------------------------------- */
-  --text-primary: #1d1d1f; /* 16.9:1 */
-  --text-secondary: #333333; /* 12.6:1 — ink-muted-80 */
-  --text-tertiary: #6e6e73; /* 5.1:1 */
-  --text-on-dark: #ffffff; /* 13.6:1 on tile-1 */
-  --text-on-dark-muted: #cccccc; /* 8.5:1 on tile-1 — body-muted */
+  --text-primary: #0f172a; /* 17.85:1 on white · 16.30:1 on the rail */
+  --text-secondary: #334155; /* 10.35:1 on white · 9.45:1 on the rail */
+  --text-tertiary: #475569; /* 7.58:1 on white · 6.92:1 on the rail */
+  --text-on-dark: #ffffff; /* 17.77:1 on midnight · 16.13:1 on tile-2 */
+  --text-on-dark-muted: #cbd5e1; /* 11.97:1 on midnight · 10.87:1 on tile-2 */
 
   /* ---- lines -------------------------------------------------------------- */
-  --border: #e0e0e0; /* hairline */
-  --divider: #f0f0f0; /* divider-soft */
+  --border: #e2e8f0; /* hairline (slate-200) */
+  --border-strong: #cbd5e1; /* the brand slate's hairline step */
+  --divider: #f1f5f9; /* divider-soft */
   --separator: var(--divider);
 
-  /* ---- accent: the single interactive colour ------------------------------ */
-  --accent: #0066cc; /* 5.6:1 on white as text, icon or fill */
-  --accent-solid: var(--accent); /* white label on it: 5.6:1 */
-  --accent-on-dark: #2997ff; /* Sky Link Blue — dark tiles only, 5.0:1 */
-  --on-accent: #ffffff;
+  /* ---- accent: the single interactive colour ------------------------------
+     One brand cyan, three measured steps. Nothing else in the interface is
+     allowed to be a second accent. */
+  --accent: #0e7490; /* cyan-700 — 5.36:1 on white as text, icon or fill */
+  --accent-solid: var(--brand-cyan); /* the pressed surface: 7.32:1 under ink */
+  --accent-solid-strong: #0891b2; /* hover/press fill: 4.83:1 under ink */
+  --accent-on-dark: #22d3ee; /* 9.83:1 on midnight, 8.93:1 on tile-2 */
+  --on-accent: var(--brand-navy); /* navy ink on cyan: 7.32:1 */
+  /* A native checkbox is filled with this and ticked in white, so it stays the
+     deep cyan in *both* appearances: white on #06b6d4 would be 2.43:1. */
+  --accent-check: #0e7490;
 
   /* ---- semantic signals (the analysis defines none: it is a marketing page
      with no error or success states, so these are the app's own, kept to a
@@ -135,9 +192,9 @@
   --banner-warn-bg: #fbf4e0;
   --banner-warn-fg: #a15c00; /* 4.7:1 on its own bg */
   --banner-warn-border: #efdcbe;
-  --banner-info-bg: #eef4ff;
-  --banner-info-fg: #274a8f; /* 7.8:1 on its own bg */
-  --banner-info-border: #cddaf5;
+  --banner-info-bg: #ecfeff; /* cyan-50: information borrows the identity */
+  --banner-info-fg: #155e75; /* 6.99:1 on its own bg */
+  --banner-info-border: #a5f3fc;
   --banner-danger-bg: #fdf0ef;
   --banner-danger-fg: #a02b20; /* 6.5:1 on its own bg */
   --banner-danger-border: #f2c9c4;
@@ -152,9 +209,12 @@
   --thumb-photo-fg: var(--text-secondary);
   --thumb-video-bg: var(--canvas-parchment);
   --thumb-video-fg: var(--text-secondary);
+  /* Neutral glyphs — chevrons, counts, the unselected rail rows. The brand
+     slate clears the 3:1 a graphic needs on either surface. */
+  --glyph-muted: var(--brand-slate);
 
   /* ---- focus, elevation, radii -------------------------------------------- */
-  --focus-ring: #0071e3; /* Focus Blue */
+  --focus-ring: #0e7490; /* 5.36:1 on white, 4.89:1 on the rail */
   /* The analysis's single drop-shadow, for product imagery resting on a
      surface. Chrome never gets one. */
   --shadow-product: 3px 5px 30px 0 rgba(0, 0, 0, 0.22);
@@ -183,16 +243,22 @@
    primary button, exactly as the analysis describes on dark product tiles. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-window: var(--surface-black);
-    --bg-sidebar: var(--surface-black);
+    /* Midnight navy is the night canvas, and the mark's tile is one step
+       lighter so it still reads as a tile against the page. */
+    --brand-tile: var(--surface-tile-2);
+    --brand-tile-edge: rgba(6, 182, 212, 0.4); /* cyan, 7.71:1 on the canvas */
+    --brand-tile-edge-width: 1px;
+
+    --bg-window: var(--surface-tile-3);
+    --bg-sidebar: var(--surface-tile-3);
     --bg-canvas: var(--surface-tile-1);
     --bg-surface: var(--surface-tile-2);
     --bg-pearl: var(--surface-tile-2);
     --bg-sunken: var(--surface-tile-3);
-    --bg-hover: #333336; /* one step past tile-2, needed to register a hover */
-    --bg-pressed: #404043; /* and one past that, for a press */
-    --bg-selected: #233a55; /* Sky Link Blue at ~16 %: selection */
-    --bg-track: #3a3a3c;
+    --bg-hover: #1e293b; /* slate-800, one step past tile-2 */
+    --bg-pressed: #24334b; /* and one past that, for a press */
+    --bg-selected: #164e63; /* cyan-900 at ~60 %: selection */
+    --bg-track: #24334b;
     --bg-overlay: rgba(0, 0, 0, 0.66);
     --bg-gallery: var(--surface-tile-1);
     --bg-stage: var(--surface-black);
@@ -202,16 +268,19 @@
     --chip-translucent-hover: rgba(210, 210, 215, 0.85);
     --surface-raised: var(--surface-tile-2);
 
-    --text-primary: #f5f5f7; /* 15.4:1 on tile-1 */
-    --text-secondary: #cccccc; /* 10.2:1 — body-muted on dark */
-    --text-tertiary: #a1a1a6; /* 5.8:1 on tile-1 */
+    --text-primary: #ffffff; /* 17.77:1 on midnight · 16.13:1 on tile-2 */
+    --text-secondary: #cbd5e1; /* 11.97:1 on midnight — slate-300 */
+    --text-tertiary: #94a3b8; /* 6.93:1 on midnight — slate-400 */
+    --glyph-muted: #94a3b8; /* 6.93:1 on midnight · 6.29:1 on tile-2 */
 
-    --border: #3a3a3c;
-    --divider: #2f2f31;
+    --border: #24334b;
+    --border-strong: #334155;
+    --divider: #1e293b;
 
-    --accent: #2997ff; /* 5.0:1 on tile-1 */
-    --accent-solid: #0066cc; /* white label on it: 5.6:1 */
-    --accent-on-dark: #2997ff;
+    --accent: #22d3ee; /* 9.83:1 on midnight */
+    --accent-solid: var(--brand-cyan); /* navy ink on it: 7.32:1 */
+    --accent-solid-strong: #0891b2;
+    --accent-on-dark: #22d3ee;
 
     --success: #4ac26b;
     --warning: #ffab3f;
@@ -235,10 +304,10 @@
     --thumb-video-bg: var(--surface-tile-3);
     --thumb-video-fg: var(--text-secondary);
 
-    --focus-ring: #2997ff;
+    --focus-ring: #22d3ee; /* 9.83:1 on midnight */
     --shadow-product: 3px 5px 30px 0 rgba(0, 0, 0, 0.55);
     --shadow-overlay: 0 24px 64px rgba(0, 0, 0, 0.6);
-    --frost-bg: rgba(39, 39, 41, 0.8);
+    --frost-bg: rgba(22, 32, 58, 0.82);
   }
 }
 
@@ -349,13 +418,36 @@ summary:focus-visible,
 }
 
 .brand-mark {
-  width: 29px;
-  height: 29px;
-  border-radius: var(--r-btn);
+  /* The mark draws its own tile, so this container only positions it: one
+     drawing, one set of brand tokens, no second copy of the tile in CSS. It is
+     sized to the tile the previous brand mark occupied, so the rail's weight is
+     unchanged. */
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
-  background: var(--accent-solid);
-  color: var(--on-accent);
+  flex-shrink: 0;
+}
+
+/* ---- the Mavora mark ----------------------------------------------------
+   The mark is an SVG (see `MavoraMark` in src/icons.tsx) whose geometry is
+   shared with public/favicon.svg. Only the colours live here. */
+.mavora-mark {
+  display: block;
+  flex-shrink: 0;
+}
+.mavora-tile {
+  fill: var(--brand-tile);
+  stroke: var(--brand-tile-edge);
+  stroke-width: var(--brand-tile-edge-width);
+  /* A pixel edge stays a pixel edge at 18px and at 1024px. */
+  vector-effect: non-scaling-stroke;
+}
+.mavora-left {
+  stroke: var(--brand-slope-left);
+}
+.mavora-right {
+  stroke: var(--brand-slope-right);
 }
 
 /* Sidebar section labels. Title case at caption-strong: no tracked caps. */
@@ -892,7 +984,7 @@ h2 {
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: var(--accent-solid);
+  accent-color: var(--accent-check); /* white tick on it: 5.36:1 */
 }
 
 .file-thumb {
@@ -1253,11 +1345,15 @@ h2 {
 .progress-fill {
   height: 100%;
   border-radius: var(--r-pill);
-  background: var(--accent-solid);
+  /* Progress is the one place the bright cyan cannot be used: against the
+     #e2e8f0 track it measures 1.97:1, so the bar would barely separate from
+     its own track. The accent step keeps the family and measures 4.35:1 light
+     and 7.04:1 dark against the same track. */
+  background: var(--accent);
   transition: width 160ms ease;
 }
 .progress-fill.file {
-  background: var(--accent-solid);
+  background: var(--accent);
 }
 .progress-fill.indeterminate {
   width: 35%;

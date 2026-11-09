@@ -6,6 +6,41 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses [semantic versioning](https://semver.org/spec/v2.0.0.html)
 (`0.x` releases are pre-1.0: the CLI surface is stable, the UI is not frozen).
 
+## [Unreleased]
+
+### Changed
+
+- **The project is now called Mavora.** The product name, window title, page title,
+  sidebar brand, Linux package names and crate metadata all changed; the Tauri bundle
+  identifier, the Rust crate name and the npm package name did not, because they are
+  machine identities whose change would discard persisted state or break the existing
+  install and lockfiles. The full table, and what to do about an existing 0.2.0
+  install, is in the README's [Renaming](README.md#renaming) section.
+- **New visual identity.** Midnight navy `#101827`, cyan `#06B6D4`, white `#FFFFFF`
+  and slate `#64748B` replace the previous accent and surface ramp, defined once as
+  tokens and applied to both appearances. The dark appearance is now midnight navy
+  rather than pure black.
+- **The brand mark is a real drawing.** A navy tile and a bold “M” split down a hard
+  vertical seam — white on the left slope, cyan on the right — replaces the
+  placeholder arrow glyph. The bundled app icons, the favicon and the in-app mark are
+  generated from one geometry.
+- Documentation, screenshots and the packaged icon set were regenerated for the new
+  name and palette.
+
+### Added
+
+- `src/brand.test.ts` — brand guards that fail on a stray old product name in
+  user-facing copy, on the app's mark drifting from the favicon's, and on any token
+  pair falling below its measured contrast requirement, in both appearances.
+- `public/favicon.svg` — the mark's design source, and the input to `npm run tauri icon`.
+
+### Fixed
+
+- Cyan is kept off text and off white labels, where it cannot clear 4.5:1: accent
+  text uses `#0E7490` (5.36:1), the primary button pairs the brand cyan with navy ink
+  (7.32:1), and progress bars use the accent step because the bright cyan measures
+  1.97:1 against its own track.
+
 ## [0.2.0] — 2026-10-15
 
 The first release to include the full interface work, the security assessment and
@@ -120,5 +155,6 @@ First public release, Linux x86-64 (`.deb`, `.rpm`, AppImage).
 - Cancellation and disconnect handling that never reports a partial file as
   completed, and never deletes or modifies anything on the iPhone.
 
+[Unreleased]: https://github.com/chandanjainhp/iphone-local-transfer/compare/v0.2.0...master
 [0.2.0]: https://github.com/chandanjainhp/iphone-local-transfer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/chandanjainhp/iphone-local-transfer/releases/tag/v0.1.0

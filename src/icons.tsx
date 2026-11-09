@@ -33,6 +33,7 @@
  *    cannot be added without an accessible name.
  */
 
+import { useId } from "react";
 import type { Icon as PhosphorIcon, IconWeight } from "@phosphor-icons/react";
 import {
   ArrowsClockwiseIcon,
@@ -91,8 +92,12 @@ export type IconSize = keyof typeof ICON_SIZE;
 
 /** Semantic name → Phosphor glyph. Add new meanings here, not in components. */
 const GLYPHS = {
-  // Identity and structure
-  brand: DownloadSimpleIcon,
+  // Identity and structure.
+  //
+  // `brand` is deliberately *not* here: the product mark is Mavora's own drawing
+  // rather than a Phosphor glyph, so it lives in `MavoraMark` below and keeps the
+  // same call-site ergonomics (a semantic name and a size step). Every other
+  // glyph in the interface still comes from this one registry.
   device: DeviceMobileIcon,
   allMedia: FolderSimpleIcon,
   photos: ImageIcon,
@@ -205,6 +210,78 @@ export function Icon({ name, size = "medium", weight, className, color, label }:
       role="img"
       aria-label={label}
     />
+  );
+}
+
+/**
+ * The Mavora brand mark — the app icon, the favicon and the sidebar mark are one
+ * drawing, not three lookalikes.
+ *
+ * Colours come from the `--brand-*` tokens in styles.css, so the mark answers the
+ * light and dark appearances instead of hard-coding a palette in JSX (the same
+ * rule every other surface in this app follows). `public/favicon.svg` carries the
+ * same geometry for the favicon and for the rasterized bundle icons;
+ * `MAVORA_GEOMETRY` is what src/brand.test.ts compares to keep them in step.
+ */
+export const MAVORA_GEOMETRY = "M 22 75 L 22 25 L 50 55 L 78 25 L 78 75";
+
+interface MavoraMarkProps {
+  /** Step from `ICON_SIZE`. Defaults to `action`, the sidebar mark's size. */
+  size?: IconSize;
+  className?: string;
+  /**
+   * Accessible name. Omit it wherever the word "Mavora" is already next to the
+   * mark — the logo then reads as decoration, exactly like `Icon`.
+   */
+  label?: string;
+}
+
+/**
+ * The Mavora monogram: a midnight-navy tile and a bold "M" split down a hard
+ * vertical seam, the left slope white and the right slope cyan.
+ *
+ * @example
+ * <MavoraMark size="large" />        // decorative, "Mavora" is right beside it
+ */
+export function MavoraMark({ size = "action", className, label }: MavoraMarkProps) {
+  // React's useId contains colons; strip them so the ids stay valid in a URL
+  // fragment reference.
+  const uid = useId().replace(/:/g, "");
+  const leftId = `mavora-left-${uid}`;
+  const rightId = `mavora-right-${uid}`;
+  const dimension = ICON_SIZE[size];
+
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      width={dimension}
+      height={dimension}
+      className={className ? `mavora-mark ${className}` : "mavora-mark"}
+      role={label === undefined ? undefined : "img"}
+      aria-label={label}
+      aria-hidden={label === undefined ? "true" : undefined}
+      focusable="false"
+    >
+      <defs>
+        <clipPath id={leftId}>
+          <rect x="0" y="0" width="50" height="100" />
+        </clipPath>
+        <clipPath id={rightId}>
+          <rect x="50" y="0" width="50" height="100" />
+        </clipPath>
+      </defs>
+      <rect className="mavora-tile" x="0" y="0" width="100" height="100" rx="23" />
+      <g
+        className="mavora-glyph"
+        fill="none"
+        strokeWidth="15"
+        strokeLinejoin="miter"
+        strokeLinecap="butt"
+      >
+        <path className="mavora-left" clipPath={`url(#${leftId})`} d={MAVORA_GEOMETRY} />
+        <path className="mavora-right" clipPath={`url(#${rightId})`} d={MAVORA_GEOMETRY} />
+      </g>
+    </svg>
   );
 }
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Local iPhone Transfer",
+  "productName": "Mavora",
   "version": "0.2.0",
   "identifier": "com.localtransfer.iphone",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Local iPhone Transfer",
+        "title": "Mavora",
         "width": 1080,
         "height": 720,
         "minWidth": 760,
@@ -31,18 +31,19 @@
     "active": true,
     "targets": "all",
     "category": "Utility",
-    "shortDescription": "Transfer accessible iPhone media locally over USB",
+    "shortDescription": "Mavora — transfer accessible iPhone media locally over USB",
+    "longDescription": "Mavora copies the photos and videos iOS itself exposes over USB to a folder on your computer. Everything stays local: no account, no cloud, no telemetry, and nothing is deleted or changed on the iPhone.",
     "linux": {
       "deb": {
         "depends": ["libimobiledevice-utils", "usbmuxd"],
         "files": {
-          "/usr/share/doc/local-iphone-transfer/THIRD_PARTY_NOTICES.md": "../THIRD_PARTY_NOTICES.md"
+          "/usr/share/doc/mavora/THIRD_PARTY_NOTICES.md": "../THIRD_PARTY_NOTICES.md"
         }
       },
       "rpm": {
         "depends": ["libimobiledevice", "usbmuxd"],
         "files": {
-          "/usr/share/doc/local-iphone-transfer/THIRD_PARTY_NOTICES.md": "../THIRD_PARTY_NOTICES.md"
+          "/usr/share/doc/mavora/THIRD_PARTY_NOTICES.md": "../THIRD_PARTY_NOTICES.md"
         }
       }
     },

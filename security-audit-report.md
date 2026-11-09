@@ -1,6 +1,12 @@
 # Security Assessment Report
 
-## Report: Local iPhone Transfer (`chandanjainhp/iphone-local-transfer`)
+## Report: Mavora (`chandanjainhp/iphone-local-transfer`)
+
+> The product has since been renamed: this assessment was carried out while the app
+> was still called *Local iPhone Transfer*, and the findings below quote the code and
+> copy as they were at the assessed commit `3a03a98`. The product name has been
+> updated in the prose; quoted strings that the rebrand changed are marked where it
+> matters. Nothing else in this report has been rewritten — an audit is a record.
 
 | Field | Value |
 | --- | --- |
@@ -340,7 +346,7 @@ Findings are grouped by severity. Each finding records title, severity, confiden
 
 - **ID**: LIT-2026-007
 - **CWE**: [CWE-248](https://cwe.mitre.org/data/definitions/248.html) — Uncaught Exception · **OWASP Ref**: A04:2021 Insecure Design (availability)
-- **Location**: `src-tauri/src/lib.rs` — 25 `unwrap`/`expect` sites in non-test code, all of the form `.lock().expect("... lock")`; plus `src-tauri/src/lib.rs:549` `.expect("error while running Local iPhone Transfer")` in `run()`
+- **Location**: `src-tauri/src/lib.rs` — 25 `unwrap`/`expect` sites in non-test code, all of the form `.lock().expect("... lock")`; plus `src-tauri/src/lib.rs:549` `.expect("error while running Local iPhone Transfer")` in `run()` (the message now reads "error while running Mavora")
 - **Impact**: If any thread panics while holding `mode`, `last_snapshot`, `media_cache`, `preview`, or `transfer_cancel`, the mutex is poisoned and **every subsequent command panics** on `.expect(...)`. A single unexpected panic therefore converts into a permanently unusable app (requires restart), and the transfer-cancel flag can never be cleared. No confidentiality or integrity impact.
 - **Evidence**:
   ```

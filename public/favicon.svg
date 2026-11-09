@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"
+     role="img" aria-label="Mavora">
+  <title>Mavora</title>
+  <!--
+    Mavora brand mark — the design source of truth.
+
+    This file is the artwork for the favicon, and it is rasterized to a 1024px PNG
+    that `npm run tauri icon` turns into the bundled app icons. The same geometry
+    is drawn in-app by `MavoraMark` (src/icons.tsx) so the sidebar mark, the
+    favicon and the installed app icon are one drawing, not three lookalikes.
+
+    Construction: a midnight-navy tile (rx 23 = the app-icon corner), and a bold
+    stroked "M" whose two halves are split by a hard vertical seam at x=50 — the
+    left slope white, the right slope cyan. The seam is a clip, not two abutting
+    paths, so the apex keeps a single unbroken miter.
+
+    Keep the `d` attribute below and the one in src/icons.tsx identical; a test in
+    src/brand.test.ts fails if they drift apart.
+
+    Palette (all four brand colours are used): tile #101827, white #FFFFFF on the
+    left of the seam, cyan #06B6D4 on the right.
+
+    The tile carries a 1px cyan hairline with `vector-effect="non-scaling-stroke"`,
+    so the mark keeps an edge on a dark background at any size — a navy tile on a
+    dark tab bar or a midnight-navy rail would otherwise measure ~1.2:1 and lose
+    its corner. The stroke is 1 CSS px at 16px and at 1024px alike; rasterizers
+    that do not support the attribute draw a 1/100-unit line instead — measured
+    at about 4px on the 1024px source, a faint teal hairline on the bundled icon,
+    which is harmless and well inside the tile's own edge.
+  -->
+  <defs>
+    <clipPath id="mavora-left">
+      <rect x="0" y="0" width="50" height="100" />
+    </clipPath>
+    <clipPath id="mavora-right">
+      <rect x="50" y="0" width="50" height="100" />
+    </clipPath>
+  </defs>
+
+  <rect x="0" y="0" width="100" height="100" rx="23" fill="#101827" stroke="#06B6D4"
+        stroke-opacity="0.35" stroke-width="1" vector-effect="non-scaling-stroke" />
+
+  <g fill="none" stroke-width="15" stroke-linejoin="miter" stroke-linecap="butt">
+    <path clip-path="url(#mavora-left)" stroke="#FFFFFF"
+          d="M 22 75 L 22 25 L 50 55 L 78 25 L 78 75" />
+    <path clip-path="url(#mavora-right)" stroke="#06B6D4"
+          d="M 22 75 L 22 25 L 50 55 L 78 25 L 78 75" />
+  </g>
+</svg>

@@ -565,5 +565,5 @@ pub fn run() {
             set_mock_device_state,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Local iPhone Transfer");
+        .expect("error while running Mavora");
 }

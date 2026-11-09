@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "../icons";
+import { Icon, MavoraMark } from "../icons";
 import type { Category, Diagnostics, MockDeviceState } from "../types";
 
 interface SidebarProps {
@@ -33,9 +33,11 @@ export function Sidebar({
     <aside className="sidebar">
       <div className="brand">
         <span className="brand-mark">
-          <Icon name="brand" size="action" />
+          {/* Decorative: the word "Mavora" is right beside it. The `hero` step
+              keeps the mark at the tile size the rail had before the rebrand. */}
+          <MavoraMark size="hero" />
         </span>
-        <span>Local Transfer</span>
+        <span>Mavora</span>
       </div>
 
       <div className="side-label">Device</div>

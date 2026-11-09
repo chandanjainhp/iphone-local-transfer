@@ -216,9 +216,7 @@ pub fn evaluate(probe: &dyn EnvironmentProbe) -> EnvReport {
             status: EnvStatus::UnsupportedPlatform,
             message: "This operating system is not supported yet.".to_string(),
             hint: Some(
-                "Local iPhone Transfer is currently built and tested for \
-                 Linux, macOS and Windows."
-                    .to_string(),
+                "Mavora is currently built and tested for Linux, macOS and Windows.".to_string(),
             ),
             code: Some(ErrorCode::Unsupported),
             os,

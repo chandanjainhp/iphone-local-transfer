@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-This file lists the third-party components that **Local iPhone Transfer**
+This file lists the third-party components that **Mavora**
 uses, their exact versions where they are pinned, their licenses, and how they
 are shipped. Audited against the actual dependency graph
 (`src-tauri/Cargo.lock`, 422 pinned crate packages) and the runtime
@@ -16,7 +16,7 @@ accordingly below.
 
 ## 1. Components bundled inside the application binary
 
-### Rust crates (compiled into `local-iphone-transfer`)
+### Rust crates (compiled into `local-iphone-transfer`, the Mavora binary)
 
 All crates in `src-tauri/Cargo.lock` are MIT **or** Apache-2.0 licensed
 (dual-licensed); several are LGPL/GPL-adjacent only in their *system*
@@ -138,5 +138,5 @@ notarization before distribution.
 4. Keep this file in the repository root and ship it inside any archive
    that contains bundled libraries (the AppImage already embeds this
    repository's contents; the deb/rpm should install it under
-   `/usr/share/doc/local-iphone-transfer/` — provided by the packaging
+   `/usr/share/doc/mavora/` — provided by the packaging
    step from this file).

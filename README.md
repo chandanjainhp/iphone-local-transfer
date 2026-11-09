@@ -1,15 +1,17 @@
-# Local iPhone Transfer
+# Mavora
 
 A local-only desktop app that copies accessible iPhone photos and videos to a folder on your computer over a USB cable.
+
+> **Mavora** is this project's new name, mark and palette. It was released up to `v0.2.0` as *Local iPhone Transfer*; what changed, what deliberately did not, and what to do about an existing install are in [Renaming](#renaming).
 
 Nothing leaves your machine: no server, no account, no telemetry, no network transfer of any kind. It is a file-copy utility, not a cloud service and not an iPhone backup tool.
 
 [![Latest release](https://img.shields.io/github/v/release/chandanjainhp/iphone-local-transfer?label=release&color=2ea043)](https://github.com/chandanjainhp/iphone-local-transfer/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/chandanjainhp/iphone-local-transfer/total?label=downloads)](https://github.com/chandanjainhp/iphone-local-transfer/releases)
-[![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/chandanjainhp/iphone-local-transfer/releases)
+[![Version](https://img.shields.io/badge/version-0.2.0-06b6d4)](https://github.com/chandanjainhp/iphone-local-transfer/releases)
 [![Changelog](https://img.shields.io/badge/changelog-CHANGELOG.md-8957e5)](CHANGELOG.md)
-[![Backend](https://img.shields.io/badge/backend-Tauri%202%20%C2%B7%20Rust-24C8DB)](https://v2.tauri.app/)
-[![Frontend](https://img.shields.io/badge/frontend-React%2018%20%C2%B7%20TypeScript%20%C2%B7%20Vite-3178C6)](https://vitejs.dev/)
+[![Backend](https://img.shields.io/badge/backend-Tauri%202%20%C2%B7%20Rust-101827)](https://v2.tauri.app/)
+[![Frontend](https://img.shields.io/badge/frontend-React%2018%20%C2%B7%20TypeScript%20%C2%B7%20Vite-64748b)](https://vitejs.dev/)
 [![Network](https://img.shields.io/badge/network-offline%20only-2ea043)](#privacy-and-security)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%E2%9C%94%20%7C%20macOS%20%E2%9A%A0%20%7C%20Windows%20%E2%9A%A0-lightgrey)](#platform-support)
 
@@ -37,6 +39,7 @@ Nothing leaves your machine: no server, no account, no telemetry, no network tra
 - [Security auditing](#security-auditing)
 - [Platform support](#platform-support)
 - [Current status and limitations](#current-status-and-limitations)
+- [Renaming](#renaming)
 - [Changelog](#changelog)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
@@ -46,7 +49,7 @@ Nothing leaves your machine: no server, no account, no telemetry, no network tra
 
 ## Download
 
-Every build is attached to a [GitHub Release](https://github.com/chandanjainhp/iphone-local-transfer/releases). The current release line is **`v0.2.0`** (Linux x86-64 only — see [Platform support](#platform-support)).
+Every build is attached to a [GitHub Release](https://github.com/chandanjainhp/iphone-local-transfer/releases). The current release line is **`v0.2.0`** (Linux x86-64 only — see [Platform support](#platform-support)) — the last one published under the previous name, so its files are still called `Local.iPhone.Transfer_…` and the links below point at those real artifacts. From the next tag they are called **`Mavora_…`**.
 
 ➡️ **[Open the latest release](https://github.com/chandanjainhp/iphone-local-transfer/releases/latest)** — or grab the artifact you need directly:
 
@@ -72,13 +75,13 @@ The `.deb` and `.rpm` declare `libimobiledevice-utils` and `usbmuxd` as package 
 
 **New in 0.2.0:** a notification centre, the icon and design systems, a responsive layout, an enabled webview CSP, and the first round of automated security gates. The transfer engine keeps the same non-destructive semantics as 0.1.0. Full list: [`CHANGELOG.md`](CHANGELOG.md).
 
-> Build outputs are named `Local iPhone Transfer_…` on disk. GitHub replaces the spaces with dots when uploading, which is why the release assets and the links above read `Local.iPhone.Transfer_…`.
+> The 0.2.0 artifacts carry the old two-word product name, and GitHub replaces spaces with dots when uploading — which is why those links read `Local.iPhone.Transfer_…`. Mavora is one word, so future assets upload under the name they were built with.
 
 ## Install on Linux
 
 1. Download one of the three artifacts above.
 2. Install it with the matching command (or run the AppImage directly — no install step, no root).
-3. Start **Local iPhone Transfer** from your application menu or from the terminal.
+3. Start **Mavora** from your application menu or from the terminal. (An install from `0.2.0` or earlier still appears as *Local iPhone Transfer* — see [Renaming](#renaming).)
 
 No Rust, Node.js, or developer tools are required on the machine running the app.
 
@@ -160,6 +163,7 @@ Read [`AGENTS.md`](./AGENTS.md) before implementing features — it is the imple
 │   ├── icons.tsx                  the single icon registry, scale, and weights
 │   ├── notifications.ts           local notification store (pure, unit-tested)
 │   ├── notifications.test.ts      notification store test suite
+│   ├── brand.test.ts              brand guards: name, mark geometry, palette contrast
 │   ├── hooks.ts                   shared hooks (close-on-outside-press)
 │   ├── previews.ts                thumbnail cache and decoding
 │   ├── styles.css                 light + dark design tokens and all styles
@@ -178,6 +182,8 @@ Read [`AGENTS.md`](./AGENTS.md) before implementing features — it is the imple
 │   └── security.yml               dependency, secret, and quality-gate CI
 ├── .githooks/
 │   └── pre-commit                 optional local secret gate
+├── public/
+│   └── favicon.svg                the brand mark, and the source of the app icons
 ├── docs/screenshots/              README screenshots
 ├── docs/releases/                 release notes, used as the GitHub release body
 ├── CHANGELOG.md                   release history
@@ -220,18 +226,26 @@ Read [`AGENTS.md`](./AGENTS.md) before implementing features — it is the imple
 
 The backend streams progress back to the UI over two events: `device_status` and `transfer_event`.
 
-### Design language
+### Visual identity
 
-The interface follows the Apple web design language captured in
-`DESIGN-apple.md`, applied through the token block at the top of
-[styles.css](src/styles.css). Nothing in the CSS hard-codes a colour, size,
-radius or spacing step: every rule uses a token, so the two appearances and the
-whole scale are edited in one place.
+Mavora's identity is the Apple web design language captured in `DESIGN-apple.md`,
+worn in Mavora's own four colours and applied through the token block at the top
+of [styles.css](src/styles.css). Nothing in the CSS hard-codes a colour, size,
+radius or spacing step: every rule uses a token, so both appearances and the whole
+scale are edited in one place.
+
+| Colour | Value | Where it is used |
+| --- | --- | --- |
+| Midnight navy | `#101827` | The mark's tile, the dark canvas, and the ink on a cyan button |
+| Cyan | `#06B6D4` | The single interactive colour — the primary button's fill, the mark's right slope, the frosted popover's accents |
+| White | `#FFFFFF` | The light canvas, and the mark's left slope |
+| Slate | `#64748B` | The neutral mid-tone: neutral glyphs and hairlines |
 
 | Concern | Rule |
 | --- | --- |
-| Accent | **One** interactive colour: Action Blue `#0066cc` on light surfaces, Sky Link Blue `#2997ff` on dark tiles, Focus Blue `#0071e3` for rings. Semantic status colours exist for progress and results only — they are never a second brand colour |
-| Surfaces | White canvas, parchment `#f5f5f7` page and rail, pearl `#fafafc` ghost fill, and the near-black tile ramp `#272729` / `#2a2a2c` / `#252527` / `#000000`. A surface change is the divider — no borders or shadows doing that job |
+| Accent | **One** interactive colour — Mavora cyan — in three measured steps: `#0E7490` for accent text, icons and links on light (5.36:1), `#06B6D4` as the primary button's fill with navy ink on it (7.32:1), `#22D3EE` on the midnight canvas (9.83:1). Semantic status colours exist for progress and results only — they are never a second brand colour |
+| Surfaces | White canvas, slate-100 `#f1f5f9` page and rail, slate-50 `#f8fafc` ghost fill by day; midnight navy `#101827` content on `#0b1220` by night. A surface change is the divider — no borders or shadows doing that job |
+| Brand mark | One geometry, three uses: the sidebar mark, the favicon, and the bundled app icons. The mark is a midnight-navy tile with a bold “M” split down a hard vertical seam — white on the left slope, cyan on the right. Colours come from `--brand-*` tokens, and `src/brand.test.ts` fails if the app's drawing and the favicon's drift apart |
 | Type | Ladder `34 / 28 / 21 / 17 / 14 / 12 / 10`, weights 400 and 600 (500 deliberately absent), negative tracking from 17 px up. Body copy runs at 17 px, not 16 |
 | Radii | `0 · 5 · 8 · 11 · 18 · pill` and nothing in between |
 | Spacing | 4 / 8 / 12 / 17 / 24 / 32 / 48 on an 8 px base |
@@ -250,10 +264,18 @@ Three deviations from the source analysis, recorded rather than taken silently:
   belongs to a scrolling catalog; a two-pane utility has no section to alternate.
   The dark ramp is used where it is real: the dark appearance, and the frosted
   popover.
-- **`ink-muted-48` (`#7a7a7a`) is not used for text**, because it measures
-  4.29:1 on white and text must clear 4.5:1. Tertiary text uses `#6e6e73`
-  (5.1:1). Contrast is measured against each element's real surface, in both
-  appearances.
+- **The brand cyan does not carry text, and does not carry white.** `#06B6D4`
+  measures 2.43:1 on white, so it fills the primary button while the *label* is
+  midnight navy (7.32:1). Accent text uses `#0E7490` (5.36:1), progress bars use
+  `#0E7490` too — bright cyan measures 1.97:1 against its own track — and a
+  native checkbox stays `#0E7490` in both appearances because its tick is white.
+  Every one of those numbers is recomputed by `src/brand.test.ts`, so the palette
+  cannot drift below 4.5:1 unnoticed.
+- **The brand slate is a graphic colour, not a text colour.** `#64748B` measures
+  4.76:1 on white but only 4.34:1 on the slate-100 rail, so tertiary text uses
+  `#475569` (7.58:1 / 6.92:1) and slate carries neutral glyphs and hairlines,
+  where the requirement is 3:1. Contrast is measured against each element's real
+  surface, in both appearances.
 
 No webfont is bundled or fetched (the CSP sets `font-src 'self'`, and
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) declares a system-font-only
@@ -281,6 +303,14 @@ Accessibility is enforced by the types, not by convention: an `<Icon>` without a
 `role="img"`. `IconButton` **requires** a `label`, so an icon-only control cannot be
 added without an accessible name. Imports are tree-shaken per icon, so only the
 glyphs in the registry reach the bundle.
+
+The **brand mark** is the one deliberate exception to the Phosphor registry: a
+logo is Mavora's own drawing, not a glyph, so `MavoraMark` lives beside the
+registry in [`src/icons.tsx`](src/icons.tsx) with the same call-site ergonomics (a
+semantic name and a size step) and the same decorative-by-default accessibility.
+Its geometry is shared with [`public/favicon.svg`](public/favicon.svg), which is
+what `npm run tauri icon` rasterizes into the bundle icons — the sidebar mark, the
+favicon and the installed app icon are one drawing rather than three lookalikes.
 
 ### Notifications
 
@@ -433,14 +463,20 @@ Verified output on Linux x86-64:
 | Artifact | Path | Size |
 | --- | --- | --- |
 | Release binary | `src-tauri/target/release/local-iphone-transfer` | 12 MB |
-| Debian package | `src-tauri/target/release/bundle/deb/Local iPhone Transfer_0.2.0_amd64.deb` | 3.2 MB |
-| RPM package | `src-tauri/target/release/bundle/rpm/Local iPhone Transfer-0.2.0-1.x86_64.rpm` | 3.2 MB |
-| AppImage | `src-tauri/target/release/bundle/appimage/Local iPhone Transfer_0.2.0_amd64.AppImage` | 104 MB |
+| Debian package | `src-tauri/target/release/bundle/deb/Mavora_0.2.0_amd64.deb` | 3.2 MB |
+| RPM package | `src-tauri/target/release/bundle/rpm/Mavora-0.2.0-1.x86_64.rpm` | 3.2 MB |
+| AppImage | `src-tauri/target/release/bundle/appimage/Mavora_0.2.0_amd64.AppImage` | 104 MB |
+
+The binary keeps its `local-iphone-transfer` filename: that is the Rust package's
+name, and renaming it would invalidate the published `Cargo.lock` entry and the
+package metadata that references it. Users never type it.
 
 Packaging notes:
 
 - The bundle icons are declared in `src-tauri/tauri.conf.json` (`bundle.icon`). Without them the AppImage step fails with *"couldn't find a square icon"*.
-- The `.deb` and `.rpm` declare dependencies on the distribution's `libimobiledevice*` and `usbmuxd` packages instead of bundling third-party binaries, and ship `THIRD_PARTY_NOTICES.md` to `/usr/share/doc/local-iphone-transfer/`.
+- The `.deb` and `.rpm` declare dependencies on the distribution's `libimobiledevice*` and `usbmuxd` packages instead of bundling third-party binaries, and ship `THIRD_PARTY_NOTICES.md` to `/usr/share/doc/mavora/`.
+
+> The packaged *file* names carry the product name as Tauri writes it (`Mavora_0.2.0_amd64.deb`, `Mavora-0.2.0-1.x86_64.rpm`), while the *package* names the package managers use are lowercased and normalised: `mavora`, in both the `.deb` control field and the RPM header. The executable inside stays `local-iphone-transfer` and the desktop entry is `Mavora.desktop`, whose `Name=` is what an application menu shows.
 - The AppImage bundles the build host's libraries (see the licensing table in [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)).
 - Linux artifacts are unsigned; no code-signing infrastructure is configured.
 - **macOS and Windows packaging is not configured or validated.**
@@ -456,16 +492,16 @@ The `v0.2.0` release is published, so the links in [Download](#download) resolve
 npm run tauri build
 # 3. Tag and publish
 cd src-tauri/target/release/bundle
-git tag -a v0.2.1 -m "Local iPhone Transfer v0.2.1"
+git tag -a v0.3.0 -m "Mavora v0.3.0"
 git push origin master
-gh release create v0.2.1 --verify-tag --title "v0.2.1" \
-  --notes-file ../../../../docs/releases/v0.2.0.md \
-  "deb/Local iPhone Transfer_0.2.1_amd64.deb" \
-  "rpm/Local iPhone Transfer-0.2.1-1.x86_64.rpm" \
-  "appimage/Local iPhone Transfer_0.2.1_amd64.AppImage"
+gh release create v0.3.0 --verify-tag --title "Mavora v0.3.0" \
+  --notes-file ../../../../docs/releases/v0.3.0.md \
+  "deb/Mavora_0.3.0_amd64.deb" \
+  "rpm/Mavora-0.3.0-1.x86_64.rpm" \
+  "appimage/Mavora_0.3.0_amd64.AppImage"
 ```
 
-**GitHub replaces spaces in uploaded asset names with dots**, so `Local iPhone Transfer_0.2.0_amd64.deb` becomes `Local.iPhone.Transfer_0.2.0_amd64.deb` on the release and in its download URL. Every download link in this README uses the dotted form. After publishing, verify the real asset names instead of assuming them:
+**GitHub replaces spaces in uploaded asset names with dots.** That is why the 0.2.0 links in this README read `Local.iPhone.Transfer_…`; Mavora's names have no spaces, so they upload unchanged. After publishing, verify the real asset names instead of assuming them:
 
 ```bash
 gh release view v0.2.0 --json assets --jq '.assets[] | "\(.name)  \(.size)"'
@@ -475,7 +511,7 @@ gh release view v0.2.0 --json assets --jq '.assets[] | "\(.name)  \(.size)"'
 
 ```bash
 npm run build                # tsc -b && vite build
-npm test                     # vitest: 72 tests (63 notification store + 9 responsive guards)
+npm test                     # vitest: 79 tests (63 notification store + 9 responsive guards + 7 brand)
 cd src-tauri
 cargo fmt --all --check
 cargo clippy --all-targets -- -D warnings   # 0 warnings
@@ -545,12 +581,53 @@ The workflow uses a single third-party action, pinned to a commit SHA rather tha
 - macOS and Windows builds are not produced yet, and there is no automated release workflow. A CI pipeline does exist, but it covers dependency/secret scanning and the quality gates only — it does not build or publish artifacts.
 - Cancellation and disconnect are handled per item, but resuming an interrupted transfer is not guaranteed.
 
+## Renaming
+
+Mavora is a rename of *Local iPhone Transfer*. Everything a user sees changed with
+it; the machine-level identities that would break something did not.
+
+**Changed**
+
+| Surface | Before | After |
+| --- | --- | --- |
+| Product name, window title, page title | Local iPhone Transfer | **Mavora** |
+| Favicon and app icon | an arrow glyph on a blue tile | the navy/cyan M, one drawing for the sidebar, the favicon and the bundle icons |
+| Palette | Action Blue / sky blue on parchment | midnight navy, cyan, white, slate |
+| Brand mark | the Phosphor download glyph | `MavoraMark`, its own drawing in `src/icons.tsx` |
+| Linux package names | `local-i-phone-transfer` | `mavora` |
+| Bundle doc path | `/usr/share/doc/local-iphone-transfer/` | `/usr/share/doc/mavora/` |
+| Rust crate metadata | "Local Transfer contributors" | "Mavora contributors" |
+
+**Deliberately unchanged**
+
+| Identity | Value | Why |
+| --- | --- | --- |
+| Tauri bundle identifier | `com.localtransfer.iphone` | It is the app's data directory on Linux and macOS. Changing it would discard the persisted notification history and turn an upgrade into a second install. It is never shown to a user |
+| Rust package and lib | `local-iphone-transfer`, `local_iphone_transfer_lib` | Internal crate identity: renaming it invalidates the published `Cargo.lock` entry and the package metadata that points at the binary |
+| npm package | `local-iphone-transfer` | `private: true` — never published, only a workspace name |
+| Repository | `chandanjainhp/iphone-local-transfer` | Renaming it would break every existing release link, clone URL and badge |
+| Release `v0.2.0` and its notes | `Local iPhone Transfer 0.2.0` | A published release is a record of what shipped under the name it shipped with |
+
+**Upgrading an existing 0.2.0 install.** The Debian and RPM package names follow the
+product name, so the first Mavora build installs *alongside* `0.2.0` instead of
+replacing it. Remove the old one first:
+
+```bash
+sudo apt remove local-i-phone-transfer   # Debian / Ubuntu
+sudo rpm -e local-i-phone-transfer       # Fedora / RHEL
+```
+
+The AppImage has no package identity — it is one file, so there is nothing to
+remove. Your destination folders and transferred files are untouched either way:
+the app has no database and keeps no state beyond the notification list.
+
 ## Changelog
 
 Release history lives in [`CHANGELOG.md`](CHANGELOG.md), and each release's notes are kept in [`docs/releases/`](docs/releases/). In brief:
 
 | Version | Highlights |
 | --- | --- |
+| **Unreleased** | Rebrand to **Mavora**: new name, brand mark, and midnight-navy/cyan identity; brand guards added to the test suite |
 | **0.2.0** | Notification centre, icon and design systems, responsive layout, webview CSP enabled, security assessment and CI quality gates, committed lockfiles |
 | **0.1.0** | First public release: device/Trust detection, accessible media listing, streaming transfer with truthful progress, safe conflict handling |
 
